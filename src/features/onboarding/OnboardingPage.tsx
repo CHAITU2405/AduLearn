@@ -46,7 +46,7 @@ export function OnboardingPage() {
 
   return (
     <div className="relative min-h-dvh">
-      <img src={ART.titleArt} alt="" aria-hidden className="fixed inset-0 size-full scale-105 object-cover blur-[3px]" draggable={false} />
+      <img src={ART.titleArtSmall} alt="" aria-hidden decoding="async" className="fixed inset-0 size-full scale-105 object-cover blur-[3px]" draggable={false} />
       <div className="fixed inset-0 bg-[#0b1f3a]/40" aria-hidden />
       <main id="main" className="relative z-10 mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8">
         <ol className="flex flex-wrap gap-2" aria-label="Setup steps">
@@ -78,7 +78,9 @@ export function OnboardingPage() {
               </Button>
             </div>
             <img
-              src={ART.titleArt}
+              src={ART.titleArtSmall}
+              srcSet={`${ART.titleArtSmall} 960w, ${ART.titleArt} 1920w`}
+              sizes="(min-width: 768px) 420px, 92vw"
               alt="The Isle of Learning: a library castle, an observatory and a canyon bridge"
               className="aspect-video w-full rounded-3xl border-4 border-white object-cover shadow-lift"
             />

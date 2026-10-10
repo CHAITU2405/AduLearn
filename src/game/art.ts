@@ -12,6 +12,7 @@ import stageDiscovery from '@/assets/game/stage-discovery.webp'
 import stageNumbers from '@/assets/game/stage-numbers.webp'
 import stageWords from '@/assets/game/stage-words.webp'
 import titleArt from '@/assets/game/title-art.webp'
+import titleArtSmall from '@/assets/game/title-art-960.webp'
 
 export const ART = {
   mapWorld,
@@ -23,6 +24,8 @@ export const ART = {
   stageDiscovery,
   stageBoss,
   titleArt,
+  /** Half-size title art for blurred backgrounds, where detail is never visible. */
+  titleArtSmall,
 }
 
 /** Painted creature sprites (transparent). Creatures without one use the vector art. */

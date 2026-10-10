@@ -186,7 +186,7 @@ export function VnDialogue({
               </button>
             )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-3">
             <span className="text-sm text-ink-muted" aria-hidden>
               {state.lineIndex + 1}/{scene.lines.length}
             </span>

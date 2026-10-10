@@ -17,7 +17,7 @@ export function WelcomePage() {
 
   return (
     <div className="relative min-h-dvh overflow-hidden">
-      <img src={ART.titleArt} alt="" aria-hidden className="absolute inset-0 size-full object-cover" draggable={false} />
+      <img src={ART.titleArt} alt="" aria-hidden fetchPriority="high" className="absolute inset-0 size-full object-cover" draggable={false} />
       <div className="absolute inset-0 bg-gradient-to-r from-[#0b1f3a]/70 via-[#0b1f3a]/25 to-transparent" aria-hidden />
       <main id="main" className="relative z-10 mx-auto flex min-h-dvh max-w-6xl flex-col justify-center gap-6 px-4 py-10 sm:px-8">
         <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="w-fit rounded-3xl border-4 border-white bg-white/95 px-5 py-3 shadow-lift">

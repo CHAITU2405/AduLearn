@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { TEMPLATES, validateContent } from '@/content'
+import { TEMPLATES } from '@/content'
+import { validateContent } from '@/content/validate'
 import { defineTemplate, ILLUSTRATIVE, int, PROTOTYPE_APPROVED } from '@/core/content/define'
 import { buildFromSeed, generateQuestion, probeTemplate } from './generator'
 import { AnswerVault } from './vault'

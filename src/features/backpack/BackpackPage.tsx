@@ -40,7 +40,7 @@ export function BackpackPage() {
 
   return (
     <div className="relative min-h-dvh overflow-x-hidden">
-      <img src={ART.titleArt} alt="" aria-hidden className="fixed inset-0 size-full scale-105 object-cover blur-[4px]" draggable={false} />
+      <img src={ART.titleArtSmall} alt="" aria-hidden decoding="async" className="fixed inset-0 size-full scale-105 object-cover blur-[4px]" draggable={false} />
       <div className="fixed inset-0 bg-[#0b1f3a]/45" aria-hidden />
       <GameHud profile={profile} title="Backpack" back={{ to: '/world', label: 'Isle map' }} />
       <main id="main" className="relative z-10 mx-auto grid w-full max-w-6xl gap-5 px-3 pt-24 pb-12 sm:px-4 lg:grid-cols-[20rem_minmax(0,1fr)]">

@@ -186,7 +186,7 @@ export function ReplyChoices({
 }) {
   const two = choices.length === 2
   return (
-    <div role="radiogroup" aria-labelledby={labelledBy} className={cn('flex flex-col items-end gap-2.5', two && 'sm:flex-row sm:justify-end')}>
+    <div role="radiogroup" aria-labelledby={labelledBy} className={cn('ml-auto grid w-full max-w-[30rem] gap-2.5', two && 'grid-cols-2')}>
       {choices.map((c, i) => {
         const selected = value === c.id
         return (
@@ -205,7 +205,7 @@ export function ReplyChoices({
               onChange(c.id)
             }}
             className={cn(
-              'relative flex max-w-[34rem] min-h-14 items-center gap-3 rounded-[1.4rem] rounded-br-md border-[3px] px-4 py-2.5 text-left font-semibold transition-all',
+              'relative flex min-h-14 w-full items-center gap-3 rounded-[1.4rem] rounded-br-md border-[3px] px-4 py-2.5 text-left font-semibold transition-all',
               'shadow-[0_4px_0_rgb(0_0_0/0.14)] active:translate-y-0.5 active:shadow-none disabled:active:translate-y-0',
               selected
                 ? verdict === 'correct'
@@ -214,7 +214,7 @@ export function ReplyChoices({
                     ? 'border-coral-deep bg-[#ffe4e6]'
                     : 'border-[#ea580c] bg-[#ffedd5] -translate-x-1 shadow-[0_6px_0_#ea580c]'
                 : 'border-white bg-white hover:-translate-x-0.5 hover:border-[#fed7aa]',
-              two && 'sm:min-w-40 sm:justify-center sm:text-center',
+              two && 'justify-center text-center',
             )}
           >
             <span
@@ -389,8 +389,8 @@ export function PlankInput({
           }
         }}
         className={cn(
-          'min-h-14 rounded-2xl border-4 border-[#a16207] bg-[#fef3c7] px-4 font-display text-2xl font-bold text-[#422006] shadow-[inset_0_3px_0_rgb(0_0_0/0.08)] outline-none placeholder:text-[#d6b26b] focus:border-[#ea580c]',
-          wide ? 'w-full' : 'w-56 text-center',
+          'min-h-12 rounded-2xl border-4 border-[#a16207] bg-[#fef3c7] px-3 font-display text-xl sm:min-h-14 sm:px-4 sm:text-2xl font-bold text-[#422006] shadow-[inset_0_3px_0_rgb(0_0_0/0.08)] outline-none placeholder:text-[#d6b26b] focus:border-[#ea580c]',
+          wide ? 'w-full' : 'w-36 text-center sm:w-56',
         )}
       />
     </>

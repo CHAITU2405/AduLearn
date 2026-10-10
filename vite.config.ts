@@ -12,9 +12,14 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          react: ['react', 'react-dom', 'react-router'],
-          vendor: ['framer-motion', 'dexie', 'dexie-react-hooks', 'zod'],
+        // Long-lived libraries get their own cacheable chunks. Zod is left to
+        // automatic splitting so it only loads with the screens that need it.
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined
+          if (/node_modules\/(react|react-dom|react-router|scheduler)\//.test(id)) return 'react'
+          if (/node_modules\/(framer-motion|motion-dom|motion-utils)\//.test(id)) return 'motion'
+          if (/node_modules\/(dexie|dexie-react-hooks)\//.test(id)) return 'dexie'
+          return undefined
         },
       },
     },

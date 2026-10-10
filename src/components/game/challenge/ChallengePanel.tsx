@@ -298,7 +298,8 @@ export function ChallengePanel(props: ChallengePanelProps) {
               aria-expanded={showWhy}
               className="ml-auto inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-bold text-ink-muted hover:bg-white"
             >
-              <HelpCircle className="size-4" aria-hidden /> Why this question?
+              <HelpCircle className="size-4" aria-hidden /> <span className="hidden sm:inline">Why this question?</span>
+              <span className="sr-only sm:hidden">Why this question?</span>
             </button>
           )}
         </div>
@@ -444,18 +445,28 @@ export function ChallengePanel(props: ChallengePanelProps) {
           )}
 
           {!result && (
-            <div className="mt-2 flex flex-wrap items-center justify-end gap-3">
+            <div className="mt-2 grid grid-cols-2 items-center gap-3 sm:flex sm:flex-wrap sm:justify-end">
               {maxHints > 0 && (
-                <button type="button" className="btn-game yellow mr-auto" onClick={askPip} disabled={hintsShown >= maxHints}>
+                <button type="button" className="btn-game yellow !px-3 whitespace-nowrap sm:mr-auto sm:!px-[1.4rem]" onClick={askPip} disabled={hintsShown >= maxHints}>
                   <Pip mood="idle" className="size-7" title="" /> {hintsShown >= maxHints ? 'No more hints' : `Ask Pip (${maxHints - hintsShown})`}
                 </button>
               )}
               {aiReady && maxHints > 0 && hintsShown > 0 && (
-                <button type="button" className="btn-game light" onClick={() => void askAi('hint')} disabled={aiBusy}>
+                <button type="button" className="btn-game light col-span-2 sm:col-span-1" onClick={() => void askAi('hint')} disabled={aiBusy}>
                   <Sparkles className={cn('size-5', aiBusy && 'animate-pulse')} aria-hidden /> {aiBusy ? 'Thinking…' : 'Ask for another hint'}
                 </button>
               )}
-              <button ref={checkRef} type="submit" data-submit className="btn-game orange min-w-44" disabled={!complete || submitting}>
+              <button
+                ref={checkRef}
+                type="submit"
+                data-submit
+                className={cn(
+                  'btn-game orange !px-3 whitespace-nowrap sm:min-w-44 sm:!px-[1.4rem]',
+                  maxHints === 0 && 'col-span-2',
+                  aiReady && maxHints > 0 && hintsShown > 0 && 'col-span-2 sm:col-span-1',
+                )}
+                disabled={!complete || submitting}
+              >
                 {submitting ? 'Checking…' : (props.submitLabel ?? puzzle.submit)}
               </button>
             </div>
