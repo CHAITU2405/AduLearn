@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { findPath, neighbourInDirection, pathPoints, polylineLength, type SceneGraph } from '../world/graph'
-import { bossStars, coinsForAnswer, explorerRank, isOwned, missionStars, purchase, WARDROBE } from './economy'
+import { DEFAULT_AVATAR } from '../avatar'
+import { bossStars, coinsForAnswer, explorerRank, isOwned, isWearing, missionStars, purchase, takeOffItem, tryOnItem, WARDROBE, wearItem } from './economy'
 
 describe('stars', () => {
   const run = (lives: number, hintsUsed: number) => ({ lives, maxLives: 3, hintsUsed, status: 'complete' as const })
@@ -45,6 +46,19 @@ describe('wardrobe', () => {
     expect(isOwned([], 'accessory', 'crown')).toBe(false)
     expect(isOwned(['acc-crown'], 'accessory', 'crown')).toBe(true)
   })
+  it('wears only owned items, can take them off, and can preview anything', () => {
+    const crown = WARDROBE.find((w) => w.id === 'acc-crown')!
+    const jetpack = WARDROBE.find((w) => w.id === 'bp-jetpack')!
+    expect(wearItem(DEFAULT_AVATAR, crown, [])).toBeNull()
+    const worn = wearItem(DEFAULT_AVATAR, crown, ['acc-crown'])!
+    expect(worn.accessory).toBe('crown')
+    expect(isWearing(worn, crown)).toBe(true)
+    expect(takeOffItem(worn, crown).accessory).toBe('none')
+    expect(takeOffItem(worn, jetpack)).toBe(worn) // not wearing it: unchanged
+    expect(tryOnItem(DEFAULT_AVATAR, jetpack).backpack).toBe('jetpack')
+    expect(DEFAULT_AVATAR.backpack).toBe('explorer') // preview never mutates
+  })
+
   it('gives friendly ranks', () => {
     expect(explorerRank(0)).toEqual({ title: 'New Explorer', next: 6 })
     expect(explorerRank(16).title).toBe('Pathfinder')

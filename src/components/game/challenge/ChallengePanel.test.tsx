@@ -6,14 +6,14 @@ import { getTemplate } from '@/content'
 import { generateQuestion } from '@/core/engine/generator'
 import type { SubmitResult } from '@/services/learning'
 import { initialMastery } from '@/core/learning/mastery'
-import { QuestionPlayer } from './QuestionPlayer'
+import { ChallengePanel } from './ChallengePanel'
 
 function setup(onSubmit: () => Promise<SubmitResult>) {
   const q = generateQuestion(getTemplate('math.eq.add-one-step')!, { seed: 11 })!.question
   const onNext = vi.fn()
   render(
     <PrefsProvider>
-      <QuestionPlayer question={q} conceptName="One-step equations" hintAllowance="unlimited" feedback="full" onSubmit={onSubmit} onNext={onNext} />
+      <ChallengePanel question={q} conceptName="One-step equations" theme="numbers" hintAllowance="unlimited" feedback="full" onSubmit={onSubmit} onNext={onNext} />
     </PrefsProvider>,
   )
   return { q, onNext }
@@ -34,7 +34,7 @@ const graded = (correct: boolean): SubmitResult => ({
   coins: 0,
 })
 
-describe('QuestionPlayer', () => {
+describe('ChallengePanel', () => {
   it('submits only once even if the button is clicked repeatedly', async () => {
     let resolve!: (r: SubmitResult) => void
     const onSubmit = vi.fn(() => new Promise<SubmitResult>((r) => (resolve = r)))
@@ -45,7 +45,7 @@ describe('QuestionPlayer', () => {
     fireEvent.click(button)
     fireEvent.submit(button.closest('form')!)
     resolve(graded(true))
-    await screen.findByText(/correct/i)
+    await screen.findByText(/Why it works/i)
     expect(onSubmit).toHaveBeenCalledTimes(1)
   })
 
@@ -58,7 +58,7 @@ describe('QuestionPlayer', () => {
   it('shows meaningful feedback, the correct answer and the explanation for a wrong answer', async () => {
     setup(async () => graded(false))
     await userEvent.type(screen.getByRole('textbox'), '9{Enter}')
-    await screen.findByText('Not quite')
+    await screen.findByText('Not quite!')
     expect(screen.getByText('You added instead of subtracting.')).toBeInTheDocument()
     expect(screen.getByText(/x = 5/)).toBeInTheDocument()
     expect(screen.getByText(/Subtract 3 from both sides/)).toBeInTheDocument()
@@ -66,10 +66,10 @@ describe('QuestionPlayer', () => {
 
   it('reveals hints one at a time', async () => {
     const { q } = setup(async () => graded(true))
-    await userEvent.click(screen.getByRole('button', { name: /hint \(2 left\)/i }))
+    await userEvent.click(screen.getByRole('button', { name: /ask pip \(2\)/i }))
     expect(screen.getByText(q.hints[0])).toBeInTheDocument()
     expect(screen.queryByText(q.hints[1])).not.toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: /hint \(1 left\)/i }))
+    await userEvent.click(screen.getByRole('button', { name: /ask pip \(1\)/i }))
     await waitFor(() => expect(screen.getByText(q.hints[1])).toBeInTheDocument())
   })
 })

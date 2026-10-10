@@ -53,10 +53,13 @@ export function WorldPage() {
     for (const r of REGIONS) {
       const state = regionState(r, CHAPTERS, snapshot)
       const ch = CHAPTERS.filter((c) => c.regionId === r.id && c.status === 'playable')
-      const p = ch.reduce((a, c) => {
-        const x = chapterProgress(c, snapshot)
-        return { done: a.done + x.done, total: a.total + x.total }
-      }, { done: 0, total: 0 })
+      const p = ch.reduce(
+        (a, c) => {
+          const x = chapterProgress(c, snapshot)
+          return { done: a.done + x.done, total: a.total + x.total }
+        },
+        { done: 0, total: 0 },
+      )
       out.push({
         id: r.id,
         ...at(r.id),
@@ -91,10 +94,16 @@ export function WorldPage() {
     bridgeFixed: snapshot.passedBossIds.has('math-boss'),
     libraryLit: ['eng-m1', 'eng-m2', 'eng-m3'].filter((m) => snapshot.completedMissionIds.has(m)).length + (snapshot.passedBossIds.has('eng-boss') ? 1 : 0),
     stationPowered: snapshot.passedBossIds.has('sci-boss'),
-    discoveryOpen: regionState(REGIONS.find((r) => r.id === 'discovery')!, CHAPTERS, snapshot) !== 'locked',
+    discoveryOpen:
+      regionState(
+        REGIONS.find((r) => r.id === 'discovery')!,
+        CHAPTERS,
+        snapshot,
+      ) !== 'locked',
     factsFound: facts,
   }
-  const intro = attempts.length === 0 ? `Hi ${profile.nickname}, I’m Pip! Tap a place on the map — or use the arrow keys — to walk there. Let’s start with a region gate!` : undefined
+  const intro =
+    attempts.length === 0 ? `Hi ${profile.nickname}, I’m Pip! Tap a place on the map — or use the arrow keys — to walk there. Let’s start with a region gate!` : undefined
 
   return (
     <>
@@ -110,6 +119,7 @@ export function WorldPage() {
         storageKey={`world:${profile.id}`}
         intro={intro}
         hud={<GameHud profile={profile} title="Isle of Learning" />}
+        viewHeight={1180}
       />
       {modal}
     </>

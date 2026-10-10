@@ -1,5 +1,7 @@
+import { useId } from 'react'
 import type { AvatarConfig } from '@/core/avatar'
 import type { CreatureArt } from '@/content/characters'
+import { CREATURE_ART } from '@/game/art'
 
 /** Darken (amt < 0) or lighten (amt > 0) a hex colour. */
 export function shade(hex: string, amt: number): string {
@@ -22,229 +24,330 @@ interface Props {
   walking?: boolean
 }
 
-function Face({ mood }: { mood: Mood }) {
-  const ink = '#0b1f3a'
-  const eyeY = mood === 'thinking' ? 52 : 55
+/** Outline colour shared with the painted artwork's linework. */
+const OL = '#3b2a1e'
+const SW = 2.4
+const line = { stroke: OL, strokeWidth: SW, strokeLinejoin: 'round' as const, strokeLinecap: 'round' as const }
+
+function Face({ mood, brow }: { mood: Mood; brow: string }) {
+  const eyeY = mood === 'thinking' ? 56 : 59
+  const brows = {
+    happy: 'M42 48 Q47 45 53 47 M67 47 Q73 45 78 48',
+    excited: 'M42 46 Q47 42 53 45 M67 45 Q73 42 78 46',
+    sad: 'M42 50 Q48 47 53 45 M67 45 Q72 47 78 50',
+    thinking: 'M42 47 Q47 45 53 47 M67 44 Q73 41 78 44',
+    surprised: 'M42 44 Q47 40 53 43 M67 43 Q73 40 78 44',
+  }[mood]
+  const eye = (cx: number) =>
+    mood === 'excited' ? (
+      <path d={`M${cx - 5.5} ${eyeY + 1} Q${cx} ${eyeY - 7} ${cx + 5.5} ${eyeY + 1}`} fill="none" stroke={OL} strokeWidth="3" strokeLinecap="round" />
+    ) : (
+      <g>
+        <ellipse cx={cx} cy={eyeY} rx="5.6" ry={mood === 'surprised' ? 7 : 6.4} fill="#fff" stroke={OL} strokeWidth="1.8" />
+        <ellipse cx={cx + (mood === 'thinking' ? 1.2 : 0.4)} cy={eyeY + (mood === 'thinking' ? -1.4 : 0.8)} rx="3.6" ry="4.4" fill="#5b3a24" />
+        <ellipse cx={cx + (mood === 'thinking' ? 1.2 : 0.4)} cy={eyeY + (mood === 'thinking' ? -1.4 : 0.8)} rx="2" ry="2.6" fill="#1c120b" />
+        <circle cx={cx + 1.8} cy={eyeY - 1.6} r="1.5" fill="#fff" />
+        <circle cx={cx - 1.4} cy={eyeY + 2.6} r="0.8" fill="#fff" opacity="0.8" />
+      </g>
+    )
   return (
     <g>
-      {mood === 'sad' && <path d="M43 45 L54 48 M77 45 L66 48" stroke={ink} strokeWidth="2.4" strokeLinecap="round" />}
-      {mood === 'surprised' && <path d="M43 44 Q48 41 54 44 M66 44 Q72 41 77 44" stroke={ink} strokeWidth="2.2" fill="none" strokeLinecap="round" />}
+      <path d={brows} fill="none" stroke={brow} strokeWidth="2.6" strokeLinecap="round" />
       <g className="avatar-blink">
-        {mood === 'excited' ? (
-          <>
-            <path d="M44 56 Q49 49 54 56" stroke={ink} strokeWidth="3" fill="none" strokeLinecap="round" />
-            <path d="M66 56 Q71 49 76 56" stroke={ink} strokeWidth="3" fill="none" strokeLinecap="round" />
-          </>
-        ) : (
-          <>
-            <ellipse cx="49" cy={eyeY} rx="3.6" ry={mood === 'surprised' ? 4.6 : 4} fill={ink} />
-            <ellipse cx="71" cy={eyeY} rx="3.6" ry={mood === 'surprised' ? 4.6 : 4} fill={ink} />
-            <circle cx="50.2" cy={eyeY - 1.4} r="1.2" fill="#fff" />
-            <circle cx="72.2" cy={eyeY - 1.4} r="1.2" fill="#fff" />
-          </>
-        )}
+        {eye(48)}
+        {eye(72)}
       </g>
-      <circle cx="42" cy="65" r="4.5" fill="#fb7185" opacity="0.38" />
-      <circle cx="78" cy="65" r="4.5" fill="#fb7185" opacity="0.38" />
-      {mood === 'happy' && <path d="M52 66 Q60 73 68 66" fill="none" stroke={ink} strokeWidth="2.6" strokeLinecap="round" />}
-      {mood === 'excited' && <path d="M51 64 Q60 77 69 64 Z" fill="#7f1d1d" stroke={ink} strokeWidth="2" strokeLinejoin="round" />}
-      {mood === 'sad' && <path d="M53 70 Q60 64 67 70" fill="none" stroke={ink} strokeWidth="2.6" strokeLinecap="round" />}
-      {mood === 'thinking' && <path d="M54 68 L66 66" fill="none" stroke={ink} strokeWidth="2.6" strokeLinecap="round" />}
-      {mood === 'surprised' && <ellipse cx="60" cy="68" rx="4" ry="5" fill="#7f1d1d" stroke={ink} strokeWidth="2" />}
+      <ellipse cx="41" cy="69" rx="5.5" ry="3.4" fill="#fb7185" opacity="0.42" />
+      <ellipse cx="79" cy="69" rx="5.5" ry="3.4" fill="#fb7185" opacity="0.42" />
+      <path d="M58.5 65 Q60 67 61.5 65" fill="none" stroke={OL} strokeWidth="1.6" strokeLinecap="round" opacity="0.6" />
+      {mood === 'happy' && <path d="M52 71 Q60 78 68 71" fill="none" stroke={OL} strokeWidth="2.6" strokeLinecap="round" />}
+      {mood === 'excited' && (
+        <g>
+          <path d="M51 70 Q60 82 69 70 Z" fill="#9f1239" stroke={OL} strokeWidth="2.2" strokeLinejoin="round" />
+          <path d="M55 75 Q60 79 65 75 Q60 73 55 75 Z" fill="#fb7185" />
+        </g>
+      )}
+      {mood === 'sad' && <path d="M53 75 Q60 69 67 75" fill="none" stroke={OL} strokeWidth="2.6" strokeLinecap="round" />}
+      {mood === 'thinking' && <path d="M54 73 Q61 74 66 71" fill="none" stroke={OL} strokeWidth="2.6" strokeLinecap="round" />}
+      {mood === 'surprised' && <ellipse cx="60" cy="73" rx="4" ry="5" fill="#9f1239" stroke={OL} strokeWidth="2" />}
+    </g>
+  )
+}
+
+/** Front hair shapes (drawn over the head). */
+function HairFront({ style, color, dark }: { style: AvatarConfig['hairStyle']; color: string; dark: string }) {
+  const hl = <path d="M40 31 Q52 23 66 25" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" opacity="0.28" />
+  if (style === 'curly') {
+    const puffs = [
+      [33, 47, 9],
+      [36, 35, 10],
+      [46, 26, 11],
+      [59, 22, 11.5],
+      [72, 25, 11],
+      [83, 33, 10],
+      [87, 46, 9],
+      [53, 34, 8],
+      [67, 33, 8],
+    ]
+    return (
+      <g>
+        {puffs.map(([x, y, r], i) => (
+          <circle key={i} cx={x} cy={y} r={r} fill={color} {...line} />
+        ))}
+        {puffs.slice(0, 7).map(([x, y], i) => (
+          <circle key={`d${i}`} cx={x + 2} cy={y + 2} r="3" fill={dark} opacity="0.5" />
+        ))}
+        {hl}
+      </g>
+    )
+  }
+  if (style === 'spiky') {
+    return (
+      <g>
+        <path d="M28 56 L30 34 L39 39 L42 20 L52 31 L60 13 L68 31 L78 20 L81 39 L90 34 L92 56 C86 44 76 39 60 39 C46 39 34 44 28 56 Z" fill={color} {...line} />
+        <path d="M44 38 L48 27 M60 37 L60 22 M74 38 L72 27" stroke={dark} strokeWidth="2" strokeLinecap="round" opacity="0.6" />
+        {hl}
+      </g>
+    )
+  }
+  // short, long, bun and braid share a swept fringe
+  return (
+    <g>
+      <path d="M28 57 C25 31 41 17 61 17 C80 17 96 30 92 57 C88 46 82 40 72 38 C67 44 57 46 48 42 C40 44 33 49 28 57 Z" fill={color} {...line} />
+      <path d="M48 42 C55 40 62 36 66 30 M72 38 C76 36 80 34 82 30" fill="none" stroke={dark} strokeWidth="2" strokeLinecap="round" opacity="0.7" />
+      {(style === 'long' || style === 'braid') && (
+        <>
+          <path d="M29 50 C26 62 27 74 31 82 C34 72 34 60 35 50 Z" fill={color} {...line} />
+          <path d="M91 50 C94 62 93 74 89 82 C86 72 86 60 85 50 Z" fill={color} {...line} />
+        </>
+      )}
+      {style === 'bun' && (
+        <g>
+          <circle cx="60" cy="15" r="11" fill={color} {...line} />
+          <path d="M53 13 Q60 8 67 13" fill="none" stroke={dark} strokeWidth="2" opacity="0.7" />
+          <rect x="52" y="22" width="16" height="5" rx="2.5" fill="#f43f5e" {...line} strokeWidth={1.6} />
+        </g>
+      )}
+      {hl}
     </g>
   )
 }
 
 /** SVG avatar used for the player and story characters. Full variant is a walkable sprite. */
 export function AvatarFigure({ config: c, variant = 'full', className, title, mood = 'happy', walking = false }: Props) {
-  const viewBox = variant === 'portrait' ? '16 8 88 88' : '0 0 120 180'
-  const hairDark = shade(c.hairColor, -0.25)
-  const outfitDark = shade(c.outfitColor, -0.25)
+  const uid = useId().replace(/:/g, '')
+  const viewBox = variant === 'portrait' ? '14 4 92 92' : '0 0 120 180'
+  const hairDark = shade(c.hairColor, -0.3)
+  const top = c.outfit === 'cape' ? shade(c.outfitColor, 0.25) : c.outfitColor
+  const outfitDark = shade(c.outfitColor, -0.28)
   const packDark = shade(c.backpackColor, -0.3)
-  const pants = '#24324d'
-  const skinDark = shade(c.skin, -0.12)
+  const skinShade = shade(c.skin, -0.16)
+  const pants = '#2b3a5c'
+  const full = variant === 'full'
   return (
-    <svg viewBox={viewBox} className={`${className ?? ''} ${walking ? 'is-walking' : ''}`} role={title ? 'img' : undefined} aria-label={title} aria-hidden={title ? undefined : true} overflow="visible">
-      {variant === 'full' && <ellipse cx="60" cy="174" rx="30" ry="6" fill="#0b1f3a" opacity="0.18" />}
-      {/* Cape behind everything */}
-      {c.outfit === 'cape' && <path className="avatar-cape" d="M34 94 L86 94 L98 160 Q60 170 22 160 Z" fill={shade(c.outfitColor, -0.15)} />}
-      {/* Backpacks */}
-      {c.backpack === 'classic' || c.backpack === 'explorer' ? (
+    <svg
+      viewBox={viewBox}
+      className={`${className ?? ''} ${walking ? 'is-walking' : ''}`}
+      role={title ? 'img' : undefined}
+      aria-label={title}
+      aria-hidden={title ? undefined : true}
+      overflow={variant === 'portrait' ? 'hidden' : 'visible'}
+    >
+      <defs>
+        <clipPath id={`head-${uid}`}>
+          <circle cx="60" cy="56" r="32" />
+        </clipPath>
+        <clipPath id={`body-${uid}`}>
+          <path d={full ? 'M34 142 C33 117 40 98 60 96 C80 98 87 117 86 142 Q60 148 34 142 Z' : 'M24 170 C24 122 38 98 60 96 C82 98 96 122 96 170 Z'} />
+        </clipPath>
+      </defs>
+      {full && <ellipse cx="60" cy="173" rx="30" ry="6" fill="#000" opacity="0.2" />}
+
+      {/* Behind the body: cape, backpack, long hair, hood */}
+      {c.outfit === 'cape' && <path className="avatar-cape" d="M34 98 L86 98 L100 164 Q60 174 20 164 Z" fill={shade(c.outfitColor, -0.1)} {...line} />}
+      {(c.backpack === 'classic' || c.backpack === 'explorer') && (
         <g>
-          <rect x="24" y="96" width="72" height="48" rx="14" fill={c.backpackColor} />
+          <rect x="23" y="100" width="74" height="46" rx="14" fill={c.backpackColor} {...line} />
           {c.backpack === 'explorer' && (
             <>
-              <rect x="30" y="86" width="60" height="13" rx="6.5" fill={packDark} />
-              <rect x="16" y="108" width="11" height="24" rx="5" fill={packDark} />
-              <rect x="93" y="108" width="11" height="24" rx="5" fill={packDark} />
+              <rect x="30" y="90" width="60" height="13" rx="6.5" fill={packDark} {...line} />
+              <rect x="15" y="111" width="11" height="24" rx="5" fill={packDark} {...line} />
+              <rect x="94" y="111" width="11" height="24" rx="5" fill={packDark} {...line} />
             </>
           )}
         </g>
-      ) : null}
+      )}
       {c.backpack === 'jetpack' && (
         <g>
-          <rect x="22" y="94" width="20" height="46" rx="9" fill="#94a3b8" stroke="#475569" strokeWidth="2" />
-          <rect x="78" y="94" width="20" height="46" rx="9" fill="#94a3b8" stroke="#475569" strokeWidth="2" />
+          <rect x="21" y="98" width="20" height="44" rx="9" fill="#cbd5e1" {...line} />
+          <rect x="79" y="98" width="20" height="44" rx="9" fill="#cbd5e1" {...line} />
+          <rect x="25" y="104" width="5" height="30" rx="2.5" fill="#fff" opacity="0.6" />
+          <rect x="83" y="104" width="5" height="30" rx="2.5" fill="#fff" opacity="0.6" />
           <g className="avatar-flame">
-            <path d="M26 140 L32 158 L38 140 Z" fill="#f97316" />
-            <path d="M82 140 L88 158 L94 140 Z" fill="#f97316" />
-            <path d="M29 140 L32 150 L35 140 Z" fill="#fde047" />
-            <path d="M85 140 L88 150 L91 140 Z" fill="#fde047" />
+            <path d="M25 142 L31 162 L37 142 Z" fill="#f97316" />
+            <path d="M83 142 L89 162 L95 142 Z" fill="#f97316" />
+            <path d="M28 142 L31 152 L34 142 Z" fill="#fde047" />
+            <path d="M86 142 L89 152 L92 142 Z" fill="#fde047" />
           </g>
         </g>
       )}
-      {(c.hairStyle === 'long' || c.hairStyle === 'braid') && <path d="M31 50 C29 84 36 100 44 104 L76 104 C84 100 91 84 89 50 Z" fill={c.hairColor} />}
+      {(c.hairStyle === 'long' || c.hairStyle === 'braid') && <path d="M27 54 C24 88 31 106 41 112 L79 112 C89 106 96 88 93 54 Z" fill={c.hairColor} {...line} />}
       {c.hairStyle === 'braid' && (
-        <g fill={hairDark}>
+        <g>
           {[0, 1, 2, 3].map((i) => (
-            <circle key={i} cx={85 + (i % 2 ? 2 : 0)} cy={94 + i * 10} r="6" />
+            <ellipse key={i} cx={86 + (i % 2 ? 2 : 0)} cy={98 + i * 10} rx="6.5" ry="6" fill={c.hairColor} {...line} />
           ))}
+          <path d="M84 140 L92 140 L88 147 Z" fill="#f43f5e" {...line} strokeWidth={1.6} />
         </g>
       )}
-      {/* Legs */}
-      {variant === 'full' && (
+      {c.outfit === 'hoodie' && <path d="M36 98 C38 80 82 80 84 98 Z" fill={outfitDark} {...line} />}
+
+      {/* Legs and shoes */}
+      {full && (
         <g>
           <g className="avatar-leg-l">
-            <rect x="45" y="134" width="13" height="32" rx="6" fill={pants} />
-            <ellipse cx="50" cy="167" rx="9" ry="5" fill="#0b1f3a" />
+            <rect x="45" y="134" width="13" height="28" rx="5.5" fill={pants} {...line} />
+            <path d="M41 162 Q41 156 47 156 L56 156 Q60 156 60 161 L60 166 L41 166 Z" fill="#334155" {...line} />
+            <path d="M41 166 L60 166" stroke="#f8fafc" strokeWidth="2.4" />
           </g>
           <g className="avatar-leg-r">
-            <rect x="62" y="134" width="13" height="32" rx="6" fill={pants} />
-            <ellipse cx="70" cy="167" rx="9" ry="5" fill="#0b1f3a" />
+            <rect x="62" y="134" width="13" height="28" rx="5.5" fill={pants} {...line} />
+            <path d="M60 162 Q60 156 66 156 L74 156 Q79 156 79 161 L79 166 L60 166 Z" fill="#334155" {...line} />
+            <path d="M60 166 L79 166" stroke="#f8fafc" strokeWidth="2.4" />
           </g>
         </g>
       )}
-      {c.outfit === 'hoodie' && <path d="M38 94 C40 78 80 78 82 94 Z" fill={outfitDark} />}
+
       {/* Arms */}
       <g className="avatar-arm-l">
-        <rect x="24" y="96" width="13" height="36" rx="6.5" fill={c.outfit === 'cape' ? shade(c.outfitColor, 0.2) : c.outfitColor} />
-        <circle cx="30.5" cy="134" r="6" fill={c.skin} />
+        <rect x="23" y="100" width="14" height="32" rx="7" fill={top} {...line} />
+        <circle cx="30" cy="134" r="6.5" fill={c.skin} {...line} />
       </g>
       <g className="avatar-arm-r">
-        <rect x="83" y="96" width="13" height="36" rx="6.5" fill={c.outfit === 'cape' ? shade(c.outfitColor, 0.2) : c.outfitColor} />
-        <circle cx="89.5" cy="134" r="6" fill={c.skin} />
+        <rect x="83" y="100" width="14" height="32" rx="7" fill={top} {...line} />
+        <circle cx="90" cy="134" r="6.5" fill={c.skin} {...line} />
       </g>
-      {/* Torso */}
-      <path d={variant === 'full' ? 'M33 142 C31 112 40 92 60 90 C80 92 89 112 87 142 Z' : 'M26 160 C26 118 38 92 60 90 C82 92 94 118 94 160 Z'} fill={c.outfit === 'cape' ? shade(c.outfitColor, 0.2) : c.outfitColor} />
-      {c.outfit === 'kurta' && (
-        <g>
-          <path d="M60 92 L60 130" stroke={outfitDark} strokeWidth="2.5" />
-          {[102, 112, 122].map((y) => (
-            <circle key={y} cx="60" cy={y} r="1.8" fill="#fff" opacity="0.9" />
-          ))}
-          <path d="M35 136 L85 136" stroke={shade(c.outfitColor, 0.35)} strokeWidth="4" />
-        </g>
-      )}
-      {c.outfit === 'jacket' && (
-        <g>
-          <path d="M50 92 L60 122 L70 92 Z" fill="#f8fafc" />
-          <path d="M50 92 L56 116 L44 104 Z M70 92 L64 116 L76 104 Z" fill={outfitDark} />
-          <rect x="38" y="122" width="13" height="9" rx="3" fill={outfitDark} />
-          <rect x="69" y="122" width="13" height="9" rx="3" fill={outfitDark} />
-        </g>
-      )}
-      {c.outfit === 'hoodie' && (
-        <g>
-          <path d="M45 126 Q60 120 75 126 L73 138 Q60 135 47 138 Z" fill={outfitDark} />
-          <path d="M55 94 L54 108 M65 94 L66 108" stroke="#f8fafc" strokeWidth="2" strokeLinecap="round" />
-        </g>
-      )}
-      {c.outfit === 'tee' && <path d="M48 92 Q60 102 72 92" fill="none" stroke={outfitDark} strokeWidth="3" strokeLinecap="round" />}
-      {c.outfit === 'cape' && <path d="M40 92 Q60 104 80 92 L78 98 Q60 110 42 98 Z" fill="#facc15" />}
+
+      {/* Torso with cel shading */}
+      <path d={full ? 'M34 142 C33 117 40 98 60 96 C80 98 87 117 86 142 Q60 148 34 142 Z' : 'M24 170 C24 122 38 98 60 96 C82 98 96 122 96 170 Z'} fill={top} {...line} />
+      <g clipPath={`url(#body-${uid})`}>
+        <path d="M66 94 C84 100 92 124 90 150 L100 150 L100 94 Z" fill="#000" opacity="0.13" />
+        {c.outfit === 'kurta' && (
+          <g>
+            <path d="M60 97 L60 132" stroke={outfitDark} strokeWidth="2.5" />
+            {[104, 113, 122].map((y) => (
+              <circle key={y} cx="60" cy={y} r="1.9" fill="#fef3c7" stroke={OL} strokeWidth="1" />
+            ))}
+            <path d="M30 136 L90 136" stroke={shade(c.outfitColor, 0.35)} strokeWidth="5" />
+          </g>
+        )}
+        {c.outfit === 'jacket' && (
+          <g>
+            <path d="M50 96 L60 124 L70 96 Z" fill="#f8fafc" {...line} strokeWidth={1.8} />
+            <path d="M50 96 L56 118 L43 106 Z M70 96 L64 118 L77 106 Z" fill={outfitDark} {...line} strokeWidth={1.8} />
+            <rect x="38" y="124" width="13" height="9" rx="2.5" fill={outfitDark} {...line} strokeWidth={1.6} />
+            <rect x="69" y="124" width="13" height="9" rx="2.5" fill={outfitDark} {...line} strokeWidth={1.6} />
+          </g>
+        )}
+        {c.outfit === 'hoodie' && (
+          <g>
+            <path d="M45 127 Q60 121 75 127 L73 140 Q60 137 47 140 Z" fill={outfitDark} {...line} strokeWidth={1.8} />
+            <path d="M55 99 L54 113 M65 99 L66 113" stroke="#f8fafc" strokeWidth="2.2" strokeLinecap="round" />
+            <circle cx="54" cy="114" r="1.8" fill="#f8fafc" />
+            <circle cx="66" cy="114" r="1.8" fill="#f8fafc" />
+          </g>
+        )}
+        {c.outfit === 'tee' && (
+          <g>
+            <path d="M48 96 Q60 106 72 96" fill="none" stroke={outfitDark} strokeWidth="3" strokeLinecap="round" />
+            <circle cx="60" cy="118" r="7" fill="#fff" opacity="0.85" />
+            <path d="M60 113 L61.6 116.6 L65.4 117 L62.6 119.6 L63.4 123.4 L60 121.5 L56.6 123.4 L57.4 119.6 L54.6 117 L58.4 116.6 Z" fill={outfitDark} />
+          </g>
+        )}
+        {c.outfit === 'cape' && <path d="M40 96 Q60 108 80 96 L78 102 Q60 114 42 102 Z" fill="#facc15" {...line} strokeWidth={1.8} />}
+      </g>
       {(c.backpack === 'classic' || c.backpack === 'explorer') && (
-        <g stroke={packDark} strokeWidth="5" strokeLinecap="round">
-          <path d="M43 96 L40 136" />
-          <path d="M77 96 L80 136" />
+        <g>
+          <path d="M43 99 L40 138" stroke={packDark} strokeWidth="6" strokeLinecap="round" />
+          <path d="M77 99 L80 138" stroke={packDark} strokeWidth="6" strokeLinecap="round" />
         </g>
       )}
-      {/* Head */}
-      <rect x="52" y="72" width="16" height="16" rx="6" fill={skinDark} />
+
+      {/* Neck and scarf */}
+      <rect x="53" y="80" width="14" height="16" rx="5" fill={skinShade} {...line} />
       {c.accessory === 'scarf' && (
         <g>
-          <path d="M42 84 Q60 96 78 84 L80 92 Q60 104 40 92 Z" fill={c.backpackColor} />
-          <rect x="66" y="90" width="9" height="20" rx="3" fill={packDark} />
+          <path d="M41 88 Q60 100 79 88 L81 96 Q60 108 39 96 Z" fill={c.backpackColor} {...line} />
+          <rect x="66" y="94" width="10" height="20" rx="3" fill={packDark} {...line} strokeWidth={1.8} />
         </g>
       )}
-      <circle cx="60" cy="52" r="28" fill={c.skin} />
-      <circle cx="32" cy="56" r="5" fill={c.skin} />
-      <circle cx="88" cy="56" r="5" fill={c.skin} />
-      <Face mood={mood} />
-      {/* Hair (front) */}
-      {c.hairStyle === 'curly' ? (
-        <g fill={c.hairColor}>
-          {[
-            [34, 44],
-            [40, 33],
-            [51, 26],
-            [62, 24],
-            [73, 27],
-            [82, 35],
-            [86, 46],
-            [46, 37],
-            [67, 33],
-          ].map(([x, y], i) => (
-            <circle key={i} cx={x} cy={y} r="9.5" />
-          ))}
-        </g>
-      ) : c.hairStyle === 'spiky' ? (
-        <path d="M32 52 L35 30 L44 37 L48 20 L56 31 L62 16 L68 31 L77 20 L79 37 L87 30 L88 52 C80 41 70 37 60 37 C50 37 40 41 32 52 Z" fill={c.hairColor} />
-      ) : (
-        <path d="M32 52 C30 26 47 20 62 20 C79 20 92 31 88 52 C81 39 71 35 60 36 C47 36 39 42 32 52 Z" fill={c.hairColor} />
-      )}
-      {c.hairStyle === 'bun' && <circle cx="60" cy="18" r="10" fill={c.hairColor} />}
+
+      {/* Head */}
+      <circle cx="27.5" cy="61" r="6" fill={c.skin} {...line} />
+      <circle cx="92.5" cy="61" r="6" fill={c.skin} {...line} />
+      <circle cx="27.5" cy="61" r="2.6" fill={skinShade} />
+      <circle cx="92.5" cy="61" r="2.6" fill={skinShade} />
+      <circle cx="60" cy="56" r="32" fill={c.skin} {...line} />
+      <g clipPath={`url(#head-${uid})`}>
+        <path d="M72 22 C98 34 100 80 64 90 L100 90 L100 22 Z" fill="#000" opacity="0.09" />
+      </g>
+      <Face mood={mood} brow={hairDark} />
+      <HairFront style={c.hairStyle} color={c.hairColor} dark={hairDark} />
+
       {/* Accessories */}
       {c.accessory === 'glasses' && (
-        <g fill="none" stroke="#0b1f3a" strokeWidth="2.2">
-          <circle cx="49" cy="55" r="7.5" />
-          <circle cx="71" cy="55" r="7.5" />
-          <path d="M56.5 55 L63.5 55" />
+        <g fill="none" stroke={OL} strokeWidth="2.4">
+          <circle cx="48" cy="59" r="8.5" fill="#bae6fd" fillOpacity="0.18" />
+          <circle cx="72" cy="59" r="8.5" fill="#bae6fd" fillOpacity="0.18" />
+          <path d="M56.5 58 Q60 55.5 63.5 58 M39.5 57 L30 54 M80.5 57 L90 54" />
         </g>
       )}
-      {c.accessory === 'headband' && <path d="M33 43 Q60 30 87 43" fill="none" stroke="#f43f5e" strokeWidth="5" strokeLinecap="round" />}
+      {c.accessory === 'headband' && <path d="M29 44 Q60 28 91 44" fill="none" stroke="#f43f5e" strokeWidth="6" strokeLinecap="round" />}
       {c.accessory === 'cap' && (
         <g>
-          <path d="M33 43 C33 20 87 20 87 43 Z" fill={outfitDark} />
-          <path d="M60 41 L97 45 Q99 49 93 49 L60 47 Z" fill={shade(c.outfitColor, -0.4)} />
-          <circle cx="60" cy="24" r="2.5" fill={shade(c.outfitColor, 0.4)} />
+          <path d="M29 44 C29 18 91 18 91 44 Z" fill={outfitDark} {...line} />
+          <path d="M60 42 L100 46 Q102 52 95 52 L60 49 Z" fill={shade(c.outfitColor, -0.45)} {...line} />
+          <circle cx="60" cy="22" r="3" fill={shade(c.outfitColor, 0.4)} {...line} strokeWidth={1.4} />
         </g>
       )}
       {c.accessory === 'explorer-hat' && (
         <g>
-          <ellipse cx="60" cy="38" rx="42" ry="9" fill="#a16207" />
-          <path d="M38 38 C38 16 82 16 82 38 Z" fill="#ca8a04" />
-          <rect x="38" y="31" width="44" height="6" fill="#7c2d12" />
+          <ellipse cx="60" cy="38" rx="45" ry="10" fill="#a16207" {...line} />
+          <path d="M37 38 C37 13 83 13 83 38 Z" fill="#ca8a04" {...line} />
+          <path d="M37 32 L83 32 L83 38 L37 38 Z" fill="#7c2d12" />
         </g>
       )}
       {c.accessory === 'headphones' && (
         <g>
-          <path d="M30 54 C28 18 92 18 90 54" fill="none" stroke="#334155" strokeWidth="5" />
-          <rect x="24" y="48" width="12" height="18" rx="5" fill="#f43f5e" />
-          <rect x="84" y="48" width="12" height="18" rx="5" fill="#f43f5e" />
+          <path d="M26 58 C24 14 96 14 94 58" fill="none" stroke={OL} strokeWidth="8" />
+          <path d="M26 58 C24 14 96 14 94 58" fill="none" stroke="#475569" strokeWidth="4.5" />
+          <rect x="19" y="50" width="14" height="22" rx="6" fill="#f43f5e" {...line} />
+          <rect x="87" y="50" width="14" height="22" rx="6" fill="#f43f5e" {...line} />
         </g>
       )}
       {c.accessory === 'flower' && (
         <g>
-          <path d="M33 40 Q60 26 87 40" fill="none" stroke="#16a34a" strokeWidth="4" />
+          <path d="M29 42 Q60 26 91 42" fill="none" stroke="#16a34a" strokeWidth="4" />
           {[
-            [36, 39, '#f472b6'],
-            [48, 32, '#facc15'],
-            [60, 30, '#fb7185'],
-            [72, 32, '#a78bfa'],
-            [84, 39, '#facc15'],
+            [32, 40, '#f472b6'],
+            [45, 32, '#facc15'],
+            [60, 29, '#fb7185'],
+            [75, 32, '#a78bfa'],
+            [88, 40, '#facc15'],
           ].map(([x, y, col]) => (
             <g key={`${x}`}>
-              <circle cx={Number(x)} cy={Number(y)} r="5" fill={String(col)} />
-              <circle cx={Number(x)} cy={Number(y)} r="1.8" fill="#fff7ed" />
+              <circle cx={Number(x)} cy={Number(y)} r="5.5" fill={String(col)} {...line} strokeWidth={1.6} />
+              <circle cx={Number(x)} cy={Number(y)} r="2" fill="#fff7ed" />
             </g>
           ))}
         </g>
       )}
       {c.accessory === 'crown' && (
         <g>
-          <path d="M40 30 L44 12 L52 24 L60 8 L68 24 L76 12 L80 30 Z" fill="#facc15" stroke="#ca8a04" strokeWidth="2" strokeLinejoin="round" />
-          <circle cx="60" cy="22" r="3" fill="#f43f5e" />
-          <circle cx="47" cy="25" r="2" fill="#0ea5e9" />
-          <circle cx="73" cy="25" r="2" fill="#22c55e" />
+          <path d="M38 30 L42 10 L51 23 L60 5 L69 23 L78 10 L82 30 Z" fill="#facc15" {...line} />
+          <circle cx="60" cy="21" r="3.2" fill="#f43f5e" {...line} strokeWidth={1.2} />
+          <circle cx="46" cy="25" r="2.2" fill="#0ea5e9" />
+          <circle cx="74" cy="25" r="2.2" fill="#22c55e" />
         </g>
       )}
     </svg>
@@ -253,6 +356,19 @@ export function AvatarFigure({ config: c, variant = 'full', className, title, mo
 
 /** Illustrated creatures for bosses and characters. */
 export function CreatureFigure({ art, className, title, hurt = false }: { art: CreatureArt; className?: string; title?: string; hurt?: boolean }) {
+  const painted = CREATURE_ART[art]
+  if (painted) {
+    return (
+      <img
+        src={painted}
+        alt={title ?? ''}
+        aria-hidden={title ? undefined : true}
+        draggable={false}
+        className={`${className ?? ''} object-contain`}
+        style={hurt ? { filter: 'grayscale(0.5) brightness(0.85)' } : undefined}
+      />
+    )
+  }
   const common = { className, role: title ? 'img' : undefined, 'aria-label': title, 'aria-hidden': title ? undefined : true }
   switch (art) {
     case 'gorm':

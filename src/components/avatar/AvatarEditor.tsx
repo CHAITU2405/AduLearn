@@ -1,5 +1,6 @@
 import { Check, Shuffle } from 'lucide-react'
 import { AVATAR_LABELS, AVATAR_OPTIONS, type AvatarConfig } from '@/core/avatar'
+import { isOwned } from '@/core/game/economy'
 import { Button, cn } from '@/components/ui'
 import { AvatarFigure } from './AvatarFigure'
 
@@ -73,53 +74,61 @@ function Chips<K extends 'hairStyle' | 'outfit' | 'backpack' | 'accessory'>({
   field,
   value,
   onChange,
+  owned,
 }: {
   label: string
   field: K
   value: AvatarConfig
   onChange: (v: AvatarConfig) => void
+  owned: readonly string[]
 }) {
   const labels = AVATAR_LABELS[field] as Record<string, string>
   return (
     <fieldset>
       <legend className="mb-2 font-bold">{label}</legend>
       <div className="flex flex-wrap gap-2">
-        {(AVATAR_OPTIONS[field] as readonly string[]).map((opt) => {
-          const selected = value[field] === opt
-          return (
-            <label key={opt} className="cursor-pointer">
-              <input type="radio" className="peer sr-only" name={field} checked={selected} onChange={() => onChange({ ...value, [field]: opt })} />
-              <span
-                className={cn(
-                  'inline-flex min-h-11 items-center rounded-full border-2 px-4 font-bold transition-colors peer-focus-visible:ring-4 peer-focus-visible:ring-brand/40',
-                  selected ? 'border-brand bg-brand text-white' : 'border-line bg-white text-ink-soft hover:border-brand',
-                )}
-              >
-                {labels[opt]}
-              </span>
-            </label>
-          )
-        })}
+        {(AVATAR_OPTIONS[field] as readonly string[])
+          .filter((opt) => isOwned(owned, field, opt) || value[field] === opt)
+          .map((opt) => {
+            const selected = value[field] === opt
+            return (
+              <label key={opt} className="cursor-pointer">
+                <input type="radio" className="peer sr-only" name={field} checked={selected} onChange={() => onChange({ ...value, [field]: opt })} />
+                <span
+                  className={cn(
+                    'inline-flex min-h-11 items-center rounded-full border-2 px-4 font-bold transition-colors peer-focus-visible:ring-4 peer-focus-visible:ring-brand/40',
+                    selected ? 'border-brand bg-brand text-white' : 'border-line bg-white text-ink-soft hover:border-brand',
+                  )}
+                >
+                  {labels[opt]}
+                </span>
+              </label>
+            )
+          })}
       </div>
     </fieldset>
   )
 }
 
+/** Random look using only free options (wardrobe items are earned, never random). */
 export function randomAvatar(): AvatarConfig {
-  const pick = <T,>(xs: readonly T[]) => xs[Math.floor(Math.random() * xs.length)]
+  const pick = <T extends string>(xs: readonly T[], field?: string) => {
+    const free = field ? xs.filter((x) => isOwned([], field, x)) : xs
+    return free[Math.floor(Math.random() * free.length)]
+  }
   return {
     skin: pick(AVATAR_OPTIONS.skin),
     hairStyle: pick(AVATAR_OPTIONS.hairStyle),
     hairColor: pick(AVATAR_OPTIONS.hairColor),
-    outfit: pick(AVATAR_OPTIONS.outfit),
+    outfit: pick(AVATAR_OPTIONS.outfit, 'outfit'),
     outfitColor: pick(AVATAR_OPTIONS.outfitColor),
-    backpack: pick(AVATAR_OPTIONS.backpack),
+    backpack: pick(AVATAR_OPTIONS.backpack, 'backpack'),
     backpackColor: pick(AVATAR_OPTIONS.backpackColor),
-    accessory: pick(AVATAR_OPTIONS.accessory),
+    accessory: pick(AVATAR_OPTIONS.accessory, 'accessory'),
   }
 }
 
-export function AvatarEditor({ value, onChange, name }: { value: AvatarConfig; onChange: (v: AvatarConfig) => void; name?: string }) {
+export function AvatarEditor({ value, onChange, name, owned = [] }: { value: AvatarConfig; onChange: (v: AvatarConfig) => void; name?: string; owned?: readonly string[] }) {
   return (
     <div className="grid gap-6 md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
       <div className="flex flex-col items-center gap-3 md:sticky md:top-24 md:self-start">
@@ -135,13 +144,14 @@ export function AvatarEditor({ value, onChange, name }: { value: AvatarConfig; o
       </div>
       <div className="flex flex-col gap-5">
         <Swatches label="Skin tone" field="skin" value={value} onChange={onChange} />
-        <Chips label="Hair style" field="hairStyle" value={value} onChange={onChange} />
+        <Chips label="Hair style" field="hairStyle" value={value} onChange={onChange} owned={owned} />
         <Swatches label="Hair colour" field="hairColor" value={value} onChange={onChange} />
-        <Chips label="Outfit" field="outfit" value={value} onChange={onChange} />
+        <Chips label="Outfit" field="outfit" value={value} onChange={onChange} owned={owned} />
         <Swatches label="Outfit colour" field="outfitColor" value={value} onChange={onChange} />
-        <Chips label="Backpack" field="backpack" value={value} onChange={onChange} />
+        <Chips label="Backpack" field="backpack" value={value} onChange={onChange} owned={owned} />
         {value.backpack !== 'none' && <Swatches label="Backpack colour" field="backpackColor" value={value} onChange={onChange} />}
-        <Chips label="Accessory" field="accessory" value={value} onChange={onChange} />
+        <Chips label="Accessory" field="accessory" value={value} onChange={onChange} owned={owned} />
+        <p className="text-sm text-ink-muted">More hats, a jetpack and a cape can be earned with coins in the Backpack wardrobe.</p>
       </div>
     </div>
   )

@@ -69,13 +69,24 @@ export function Confetti({ pieces = 60 }: { pieces?: number }) {
 /** Hearts with a pop animation when one is lost. */
 export function HeartsBar({ lives, max, className }: { lives: number; max: number; className?: string }) {
   return (
-    <div className={cn('flex items-center gap-1 rounded-2xl border-[3px] border-white bg-white/90 px-3 py-1.5 shadow-soft', className)} role="img" aria-label={`${lives} of ${max} hearts left`}>
+    <div
+      className={cn('flex items-center gap-1 rounded-2xl border-[3px] border-white bg-white/90 px-3 py-1.5 shadow-soft', className)}
+      role="img"
+      aria-label={`${lives} of ${max} hearts left`}
+    >
       {Array.from({ length: max }, (_, i) => (
         <span key={i} className="relative size-7">
           <Heart className="absolute inset-0 size-7 text-[#e2e8f0]" aria-hidden strokeWidth={2.4} />
           <AnimatePresence>
             {i < lives && (
-              <motion.span key="full" className="absolute inset-0" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: [1, 1.6, 0], rotate: [0, -20, 30], opacity: [1, 1, 0] }} transition={{ duration: 0.5 }}>
+              <motion.span
+                key="full"
+                className="absolute inset-0"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: [1, 1.6, 0], rotate: [0, -20, 30], opacity: [1, 1, 0] }}
+                transition={{ duration: 0.5 }}
+              >
                 <Heart className="size-7 fill-coral text-coral-deep" aria-hidden strokeWidth={2.4} />
               </motion.span>
             )}
@@ -98,7 +109,7 @@ export function StarReveal({ stars, size = 'size-16' }: { stars: number; size?: 
           transition={{ delay: 0.3 + i * 0.25, type: 'spring', stiffness: 260, damping: 14 }}
           className={i === 2 ? '-translate-y-3' : undefined}
         >
-          <Star className={cn(size, i <= stars ? 'fill-sun text-[#ca8a04] drop-shadow' : 'fill-[#e2e8f0] text-[#cbd5e1]')} strokeWidth={1.8} aria-hidden />
+          <Star className={cn(size, i <= stars ? 'fill-sun text-[#ca8a04] drop-shadow' : 'fill-[#efe3c2] text-[#c4a670]')} strokeWidth={1.8} aria-hidden />
         </motion.span>
       ))}
     </div>

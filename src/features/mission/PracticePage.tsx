@@ -51,8 +51,24 @@ export function PracticePage() {
           <PipSays mood="happy" className="mb-4" size="sm">
             No hearts to lose here! Answer {rules.goal.correct} challenges correctly. Ask me for hints any time.
           </PipSays>
-          <ProgressTrack theme={theme} filled={run.correct} total={rules.goal.correct} caption={`Training ${Math.min(run.correct, rules.goal.correct)}/${rules.goal.correct} · ${run.answered} answered`} />
-          <RunPlayer profileId={profile.id} run={run} rules={rules} mix={mix} difficultyRange={RANGE} context="practice" theme={theme} onRunChange={setRun} onRunEnd={onRunEnd} onResult={onResult} />
+          <ProgressTrack
+            theme={theme}
+            filled={run.correct}
+            total={rules.goal.correct}
+            caption={`Training ${Math.min(run.correct, rules.goal.correct)}/${rules.goal.correct} · ${run.answered} answered`}
+          />
+          <RunPlayer
+            profileId={profile.id}
+            run={run}
+            rules={rules}
+            mix={mix}
+            difficultyRange={RANGE}
+            context="practice"
+            theme={theme}
+            onRunChange={setRun}
+            onRunEnd={onRunEnd}
+            onResult={onResult}
+          />
         </div>
       ) : (
         <div className="mt-14">

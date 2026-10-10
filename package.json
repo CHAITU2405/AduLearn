@@ -2,7 +2,7 @@
   "name": "adulearn",
   "private": true,
   "version": "0.1.0",
-  "description": "AduLearn \u00e2\u20ac\u201d Adventure Edu Learning Platform (Team Spidey)",
+  "description": "AduLearn â€” Adventure Edu Learning Platform (Team Spidey)",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -40,6 +40,7 @@
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^26.1.0",
     "prettier": "^3.9.9",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4.3.3",
     "typescript": "~5.9",
     "vite": "^7.3.7",

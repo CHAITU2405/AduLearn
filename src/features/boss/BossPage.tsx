@@ -85,7 +85,13 @@ function BossFlow({ boss }: { boss: BossBlueprint }) {
       const q = question!
       const res = await submitAnswer({ profileId: profile.id, question: q, response, hintsUsed, context: 'boss', refId: boss.id })
       if (res.status === 'graded') {
-        const applied = applyBossResult(boss, stateRef.current, q.instanceId, { conceptId: q.conceptId, correct: res.grade.correct, score: res.grade.score, hintsUsed, misconceptionId: res.grade.misconceptionId })
+        const applied = applyBossResult(boss, stateRef.current, q.instanceId, {
+          conceptId: q.conceptId,
+          correct: res.grade.correct,
+          score: res.grade.score,
+          hintsUsed,
+          misconceptionId: res.grade.misconceptionId,
+        })
         if (applied.accepted) {
           stateRef.current = applied.state
           setState(applied.state)
@@ -157,11 +163,7 @@ function BossFlow({ boss }: { boss: BossBlueprint }) {
         ) : undefined
       }
     >
-      {planError && (
-        <PipSays mood="sad">
-          This challenge can’t be built right now: {planError.join(' ')} A teacher may need to approve more content.
-        </PipSays>
-      )}
+      {planError && <PipSays mood="sad">This challenge can’t be built right now: {planError.join(' ')} A teacher may need to approve more content.</PipSays>}
 
       {phase === 'intro' && (
         <>
@@ -186,7 +188,12 @@ function BossFlow({ boss }: { boss: BossBlueprint }) {
         <>
           <Arena boss={boss} hp={hp} total={total} avatar={profile.avatar} strike={strike} lives={state.lives} />
           {round && (
-            <motion.p key={round.index} initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="mx-auto mb-4 flex w-fit max-w-full items-center gap-2 rounded-2xl border-[3px] border-white bg-ink/85 px-4 py-2 font-display font-bold text-white shadow-lift">
+            <motion.p
+              key={round.index}
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mx-auto mb-4 flex w-fit max-w-full items-center gap-2 rounded-2xl border-[3px] border-white bg-ink/85 px-4 py-2 font-display font-bold text-white shadow-lift"
+            >
               <Swords className="size-5 shrink-0 text-orange" aria-hidden /> Round {round.index + 1}/{total}: {round.narrative}
             </motion.p>
           )}
@@ -235,7 +242,23 @@ function BossFlow({ boss }: { boss: BossBlueprint }) {
   )
 }
 
-function Arena({ boss, hp, total, avatar, strike, lives, defeated = false }: { boss: BossBlueprint; hp: number; total: number; avatar: AvatarConfig; strike: Strike; lives: number; defeated?: boolean }) {
+function Arena({
+  boss,
+  hp,
+  total,
+  avatar,
+  strike,
+  lives,
+  defeated = false,
+}: {
+  boss: BossBlueprint
+  hp: number
+  total: number
+  avatar: AvatarConfig
+  strike: Strike
+  lives: number
+  defeated?: boolean
+}) {
   const creature = getCharacter(boss.characterId).creature ?? 'golem'
   const [myMood, setMyMood] = useState<Mood>('happy')
   useEffect(() => {
@@ -247,11 +270,20 @@ function Arena({ boss, hp, total, avatar, strike, lives, defeated = false }: { b
   return (
     <div className="relative mx-auto mb-4 flex h-48 max-w-3xl items-end justify-between px-2 sm:h-64">
       {/* Explorer and Pip */}
-      <motion.div key={strike?.kind === 'attack' ? strike.key : 'me'} animate={strike?.kind === 'attack' ? { x: [0, -14, 10, -6, 0] } : {}} transition={{ delay: 0.35, duration: 0.4 }} className="relative h-40 w-28 sm:h-56 sm:w-40">
+      <motion.div
+        key={strike?.kind === 'attack' ? strike.key : 'me'}
+        animate={strike?.kind === 'attack' ? { x: [0, -14, 10, -6, 0] } : {}}
+        transition={{ delay: 0.35, duration: 0.4 }}
+        className="relative h-40 w-28 sm:h-56 sm:w-40"
+      >
         <div className="pip-float absolute -top-6 -right-6 size-14 sm:size-16">
-          <Pip mood={strike?.kind === 'attack' ? 'sad' : 'cheer'} className="size-full" />
+          <Pip mood={strike?.kind === 'attack' ? 'sad' : 'cheer'} className="size-full sprite-outline" />
         </div>
-        <AvatarFigure config={avatar} mood={myMood} className="size-full drop-shadow-xl" />
+        <span
+          className="absolute -bottom-3 left-1/2 h-6 w-36 -translate-x-1/2 rounded-[50%] bg-[#64748b] shadow-[0_6px_0_#334155,0_10px_20px_rgb(0_0_0/0.4)] sm:w-44"
+          aria-hidden
+        />
+        <AvatarFigure config={avatar} mood={myMood} className="relative size-full sprite-shadow" />
       </motion.div>
       {/* Projectiles */}
       <AnimatePresence>
@@ -292,14 +324,30 @@ function Arena({ boss, hp, total, avatar, strike, lives, defeated = false }: { b
         <p className="rounded-full bg-ink/80 px-3 py-0.5 font-display text-sm font-bold text-white">{boss.bossName}</p>
         <motion.div
           key={strike?.kind === 'bolt' ? strike.key : 'boss'}
-          animate={defeated ? { opacity: 0.5, rotate: -8, y: 12 } : strike?.kind === 'bolt' ? { x: [0, 16, -12, 6, 0], filter: ['brightness(1)', 'brightness(2)', 'brightness(1)'] } : { y: [0, -6, 0] }}
+          animate={
+            defeated
+              ? { opacity: 0.5, rotate: -8, y: 12 }
+              : strike?.kind === 'bolt'
+                ? { x: [0, 16, -12, 6, 0], filter: ['brightness(1)', 'brightness(2)', 'brightness(1)'] }
+                : { y: [0, -6, 0] }
+          }
           transition={strike?.kind === 'bolt' ? { delay: 0.35, duration: 0.45 } : defeated ? { duration: 0.8 } : { duration: 2.4, repeat: Infinity }}
           className="relative size-32 sm:size-48"
         >
-          <CreatureFigure art={creature} hurt={defeated || hp <= total / 2} className="size-full drop-shadow-2xl" />
+          <span
+            className="absolute -bottom-3 left-1/2 h-7 w-44 -translate-x-1/2 rounded-[50%] bg-[#64748b] shadow-[0_6px_0_#334155,0_10px_20px_rgb(0_0_0/0.4)] sm:w-56"
+            aria-hidden
+          />
+          <CreatureFigure art={creature} hurt={defeated || hp <= total / 2} className="relative size-full sprite-outline-lg" />
           <AnimatePresence>
             {strike?.kind === 'bolt' && (
-              <motion.span key={strike.key} className="absolute -top-2 left-1/2 font-display text-3xl font-black text-sun text-outline" initial={{ y: 0, opacity: 0 }} animate={{ y: -40, opacity: [0, 1, 0] }} transition={{ delay: 0.4, duration: 1 }}>
+              <motion.span
+                key={strike.key}
+                className="absolute -top-2 left-1/2 font-display text-3xl font-black text-sun text-outline"
+                initial={{ y: 0, opacity: 0 }}
+                animate={{ y: -40, opacity: [0, 1, 0] }}
+                transition={{ delay: 0.4, duration: 1 }}
+              >
                 −1
               </motion.span>
             )}
@@ -310,7 +358,23 @@ function Arena({ boss, hp, total, avatar, strike, lives, defeated = false }: { b
   )
 }
 
-function BossResult({ boss, evaluation, rewards, won, stars, coins, onRetry }: { boss: BossBlueprint; evaluation: BossEvaluation; rewards: RewardRecord[]; won: boolean; stars: number; coins: number; onRetry: () => void }) {
+function BossResult({
+  boss,
+  evaluation,
+  rewards,
+  won,
+  stars,
+  coins,
+  onRetry,
+}: {
+  boss: BossBlueprint
+  evaluation: BossEvaluation
+  rewards: RewardRecord[]
+  won: boolean
+  stars: number
+  coins: number
+  onRetry: () => void
+}) {
   const chapter = getChapter(boss.chapterId)!
   const navigate = useNavigate()
   const practice = evaluation.failedConcepts
@@ -323,7 +387,11 @@ function BossResult({ boss, evaluation, rewards, won, stars, coins, onRetry }: {
         subtitle={`${evaluation.correct} of ${evaluation.total} correct.`}
         stars={won ? stars : undefined}
         coins={coins}
-        pipLine={won ? `${boss.bossName} is beaten! The ${getRegion(chapter.regionId)?.name} is safer thanks to you.` : 'Everything you answered is saved. A little training, then a new battle!'}
+        pipLine={
+          won
+            ? `${boss.bossName} is beaten! The ${getRegion(chapter.regionId)?.name} is safer thanks to you.`
+            : 'Everything you answered is saved. A little training, then a new battle!'
+        }
         actions={
           won ? (
             <>

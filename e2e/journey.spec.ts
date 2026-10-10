@@ -1,19 +1,24 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import { answerAndContinue, answerCurrent, completeMission, createExplorer, skipStory, trackErrors } from './helpers'
 
-test('main student journey: avatar → world → diagnostic → missions → bosses → follow-up → teacher view', async ({ page }) => {
+/** Walk to a place on the current map and use its action button. */
+async function visit(page: Page, node: string, action: RegExp) {
+  await page.locator(`[data-node="${node}"]`).click()
+  await page.getByRole('region').getByRole('button', { name: action }).click()
+}
+
+test('main student journey: avatar → world map → diagnostic → missions → bosses → follow-up → teacher view', async ({ page }) => {
   const errors = trackErrors(page)
   await createExplorer(page)
 
-  // World map: Science is locked until a mission is completed.
-  await expect(page.getByLabel(/Frontier of Discovery.*locked/)).toBeVisible()
-  await page.getByRole('link', { name: /Realm of Numbers.*open/i }).click()
-  await expect(page.getByRole('heading', { name: 'The Realm of Numbers' })).toBeVisible()
-  await page.getByRole('link', { name: /begin chapter/i }).click()
-  await expect(page.getByRole('heading', { name: 'Bridge of Balance' })).toBeVisible()
+  // Explorable world map: the Frontier of Discovery starts locked.
+  await expect(page.locator('[data-node="discovery"]')).toHaveAttribute('aria-label', /locked/)
+  await visit(page, 'numbers', /enter region/i)
+  await expect(page).toHaveURL(/\/region\/numbers$/)
+  await expect(page.getByRole('heading', { name: 'The Realm of Numbers' })).toBeAttached()
 
-  // Diagnostic check: no feedback until the end; answer some wrong to leave room for growth.
-  await page.getByRole('link', { name: /take check/i }).click()
+  // Diagnostic check (from the Survey Stone): no feedback until the end.
+  await visit(page, 'math-diag', /take the check/i)
   await page.getByRole('button', { name: /^begin$/i }).click()
   for (let i = 0; i < 5; i++) {
     await answerCurrent(page, i === 0)
@@ -21,33 +26,31 @@ test('main student journey: avatar → world → diagnostic → missions → bos
   }
   await expect(page.getByText('Check complete')).toBeVisible()
   await expect(page.getByText(/^1 of 5 correct\. Your answers are saved/)).toBeVisible()
-  await page.getByRole('link', { name: /back to chapter/i }).click()
 
-  // Mission 1: wrong answer → meaningful feedback, hearts drop, fresh variant follows.
+  // Mission 1: wrong answer → feedback, a heart breaks, a fresh variant and a hint offer follow.
   await page.goto('/mission/math-m1')
   await skipStory(page)
   await expect(page.getByRole('img', { name: '3 of 3 hearts left' })).toBeVisible()
   const firstId = await answerCurrent(page, false)
-  await expect(page.getByText(/Not quite|Partly right/)).toBeVisible()
+  await expect(page.getByText(/Not quite!|So close!/)).toBeVisible()
   await expect(page.getByText(/Correct answer:/)).toBeVisible()
-  await expect(page.getByText(/Why:/)).toBeVisible()
+  await expect(page.getByText(/Pip explains:/)).toBeVisible()
   await expect(page.getByRole('img', { name: '2 of 3 hearts left' })).toBeVisible()
-  await page.getByRole('button', { name: /next question/i }).click()
-  await expect(page.locator('[data-instance-id]:not([data-graded])')).toBeVisible()
-  expect(await page.locator('[data-instance-id]:not([data-graded])').getAttribute('data-instance-id')).not.toBe(firstId)
-  await expect(page.getByText(/A hint is ready/)).toBeVisible()
+  await page.getByRole('button', { name: /next challenge/i }).click()
+  const fresh = page.locator('[data-instance-id]:not([data-graded])')
+  await expect(fresh).toBeVisible()
+  expect(await fresh.getAttribute('data-instance-id')).not.toBe(firstId)
+  await expect(page.getByText(/Want a hint\?/)).toBeVisible()
   await completeMission(page)
   await skipStory(page) // outro
   await expect(page.getByText('Mission complete!')).toBeVisible()
   await expect(page.getByText(/Weigh the Planks complete/)).toBeVisible()
 
-  // Progress survives a full reload.
+  // Progress survives a full reload and shows on the region map.
   await page.reload()
-  await page.goto('/chapter/math-equations')
-  const m1 = page.locator('li', { has: page.getByText('Weigh the Planks', { exact: true }) })
-  await expect(m1.getByText('Completed')).toBeVisible()
-  const m2 = page.locator('li', { has: page.getByText('Raise the Rope Lift', { exact: true }) })
-  await expect(m2.getByText('Available')).toBeVisible()
+  await page.goto('/region/numbers')
+  await expect(page.locator('[data-node="math-m1"]')).toHaveAttribute('aria-label', /completed/)
+  await expect(page.locator('[data-node="math-m2"]')).toHaveAttribute('aria-label', /available/)
 
   // Mission 2, then the mini-boss.
   await page.goto('/mission/math-m2')
@@ -57,7 +60,7 @@ test('main student journey: avatar → world → diagnostic → missions → bos
   await expect(page.getByText('Mission complete!')).toBeVisible()
 
   await page.goto('/boss/math-mini')
-  await expect(page.getByText('How this challenge works')).toBeVisible()
+  await expect(page.getByText('Battle rules')).toBeVisible()
   await skipStory(page)
   for (let i = 0; i < 5; i++) await answerAndContinue(page, true)
   await skipStory(page) // outro
@@ -71,7 +74,7 @@ test('main student journey: avatar → world → diagnostic → missions → bos
     await expect(page.getByText('Mission complete!')).toBeVisible()
   }
 
-  // Chapter boss: one mistake is allowed (round 4 — "both sides" appears twice, so the idea is still covered).
+  // Chapter boss: one mistake allowed (round 4 — "both sides" appears twice, so the skill is still covered).
   await page.goto('/boss/math-boss')
   await skipStory(page)
   await expect(page.getByRole('img', { name: /Storm Golem strength: 6 of 6/ })).toBeVisible()
@@ -81,7 +84,7 @@ test('main student journey: avatar → world → diagnostic → missions → bos
   await expect(page.getByText('5 of 6 correct.')).toBeVisible()
 
   // Follow-up check and transparent comparison.
-  await page.getByRole('link', { name: /take the follow-up check/i }).click()
+  await page.getByRole('button', { name: /take the follow-up check/i }).click()
   await page.getByRole('button', { name: /^begin$/i }).click()
   for (let i = 0; i < 5; i++) {
     await answerCurrent(page, true)
@@ -91,9 +94,10 @@ test('main student journey: avatar → world → diagnostic → missions → bos
   await expect(page.getByText(/Observed 4 more correct answers/)).toBeVisible()
   await expect(page.getByText('Limitations of this comparison')).toBeVisible()
 
-  // Science region is now open.
+  // The Frontier of Discovery is now open on the world map, and coins were earned.
   await page.goto('/world')
-  await expect(page.getByRole('link', { name: /Frontier of Discovery.*open/i })).toBeVisible()
+  await expect(page.locator('[data-node="discovery"]')).toHaveAttribute('aria-label', /available/)
+  await expect(page.locator('#hud-coins')).not.toHaveAttribute('aria-label', '0 coins')
 
   // Teacher view reflects the real stored records.
   await page.goto('/teacher')
@@ -108,7 +112,6 @@ test('main student journey: avatar → world → diagnostic → missions → bos
   await expect(page.getByRole('heading', { name: 'Recent answers' })).toBeVisible()
   await expect(page.getByRole('cell', { name: 'boss', exact: true }).first()).toBeVisible()
   await expect(page.getByRole('cell', { name: 'diagnostic', exact: true }).first()).toBeVisible()
-  await expect(page.getByText('Storm Over the Gorge').first()).toBeVisible()
   await expect(page.getByText(/Observed 4 more correct answers/)).toBeVisible()
 
   expect(errors).toEqual([])

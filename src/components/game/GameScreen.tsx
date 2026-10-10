@@ -3,7 +3,19 @@ import type { ChallengeTheme } from './challenge/ChallengePanel'
 import { StageBackdrop } from './Stage'
 
 /** Full-screen game stage: illustrated backdrop, HUD, optional characters, centred content. */
-export function GameScreen({ theme, hud, characters, children, bottom }: { theme: ChallengeTheme; hud: ReactNode; characters?: ReactNode; children: ReactNode; bottom?: ReactNode }) {
+export function GameScreen({
+  theme,
+  hud,
+  characters,
+  children,
+  bottom,
+}: {
+  theme: ChallengeTheme
+  hud: ReactNode
+  characters?: ReactNode
+  children: ReactNode
+  bottom?: ReactNode
+}) {
   return (
     <div className="relative min-h-dvh overflow-x-hidden">
       <StageBackdrop theme={theme} />

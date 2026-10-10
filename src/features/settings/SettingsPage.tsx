@@ -6,7 +6,8 @@ import { AvatarEditor } from '@/components/avatar/AvatarEditor'
 import { Button, Card, ConfirmDialog, Notice, PageHeader } from '@/components/ui'
 import { nicknameSchema, type AvatarConfig } from '@/core/avatar'
 import { buildExport, downloadJson, importBundle, parseImport } from '@/data/exportImport'
-import { clearAllData, profileRepo } from '@/data/repositories'
+import { clearAllData, profileRepo, walletRepo } from '@/data/repositories'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { listModels, OllamaFailure } from '@/services/ai/ollama'
 import { createDemoProfile, removeDemoProfiles } from '@/services/demo'
 
@@ -30,6 +31,7 @@ function ExplorerSection() {
   const [editing, setEditing] = useState(false)
   const [avatar, setAvatar] = useState<AvatarConfig>(profile!.avatar)
   const [nickname, setNickname] = useState(profile!.nickname)
+  const wallet = useLiveQuery(() => walletRepo.get(profile!.id), [profile!.id])
   const [msg, setMsg] = useState<{ tone: 'success' | 'error'; text: string } | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const p = profile!
@@ -65,7 +67,7 @@ function ExplorerSection() {
               className="mt-1 block min-h-12 w-full max-w-sm rounded-2xl border-2 border-line px-4 font-bold outline-none focus:border-brand"
             />
           </div>
-          <AvatarEditor value={avatar} onChange={setAvatar} name={nickname} />
+          <AvatarEditor value={avatar} onChange={setAvatar} name={nickname} owned={wallet?.owned ?? []} />
           <div className="flex gap-2">
             <Button onClick={() => void save()}>
               <Save className="size-4" aria-hidden /> Save changes

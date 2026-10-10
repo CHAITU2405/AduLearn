@@ -21,7 +21,7 @@ export function trackErrors(page: Page): string[] {
 
 export async function createExplorer(page: Page, nickname = 'E2E Explorer') {
   await page.goto('/')
-  await page.getByRole('link', { name: /start a new adventure/i }).click()
+  await page.getByRole('link', { name: /new adventure/i }).click()
   await page.getByRole('button', { name: /create my explorer/i }).click()
   await page.getByText('Curly', { exact: true }).click()
   await page.getByText('Field jacket', { exact: true }).click()
@@ -64,9 +64,13 @@ export async function answerCurrent(page: Page, correct = true) {
     case 'match':
     case 'label': {
       const entries = Object.entries(response.pairs)
+      const [rowAttr, optAttr] = response.kind === 'match' ? ['data-match-left', 'data-match-right'] : ['data-label-marker', 'data-label-option']
       for (const [i, [row, option]] of entries.entries()) {
         const target = correct ? option : entries[(i + 1) % entries.length][1]
-        await card.locator(`select#pair-${row}`).selectOption(target)
+        // Tap a gem, then tap the socket (the keyboard/touch-friendly path).
+        const gem = card.locator(`[${optAttr}="${target}"]`)
+        if (await gem.count()) await gem.first().click()
+        await card.locator(`[${rowAttr}="${row}"]`).click()
       }
       break
     }
@@ -76,7 +80,7 @@ export async function answerCurrent(page: Page, correct = true) {
       break
     }
   }
-  await card.getByRole('button', { name: /check answer|submit answer/i }).click()
+  await card.getByRole('button', { name: /check answer|submit answer|cast answer/i }).click()
   return id
 }
 
@@ -98,6 +102,7 @@ export async function skipStory(page: Page) {
 /** Play a mission (after the story) until it completes, answering correctly. */
 export async function completeMission(page: Page) {
   if (await page.getByRole('button', { name: /start the mission/i }).isVisible()) await page.getByRole('button', { name: /start the mission/i }).click()
+  // Graded cards stay in the DOM until the next one loads; only look at ungraded ones.
   for (let i = 0; i < 25; i++) {
     const graded = page.locator('[data-instance-id]:not([data-graded])')
     const outroOrSummary = page.getByText('Mission complete!').or(page.getByRole('button', { name: /skip story/i }))

@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { ArrowLeft, CheckCircle2, ClipboardCheck, TrendingUp, XCircle } from 'lucide-react'
 import { useRequiredProfile } from '@/app/context'
-import { QuestionPlayer } from '@/components/questions/QuestionPlayer'
+import { ChallengePanel } from '@/components/game/challenge/ChallengePanel'
+import { themeForSubject } from '@/components/game/Stage'
 import { Button, Card, LinkButton, Notice, Pill, ProgressBar, Spinner } from '@/components/ui'
 import { chapterNodeStates, conceptName, getChapter } from '@/content'
 import type { QuestionResponse } from '@/core/content/types'
@@ -149,15 +150,16 @@ function AssessmentFlow({ chapterId, kind }: { chapterId: string; kind: Assessme
             </p>
           </Card>
           {question ? (
-            <QuestionPlayer
+            <ChallengePanel
               key={question.instanceId}
               question={question}
               conceptName={conceptName(question.conceptId)}
+              theme={themeForSubject(chapter.subject)}
               hintAllowance="none"
               feedback="none"
+              submitLabel="Submit answer"
               onSubmit={onSubmit}
               onNext={() => void onNext()}
-              difficultyLabel={false}
             />
           ) : (
             <Spinner label="Preparing the next question" />

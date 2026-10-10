@@ -98,3 +98,25 @@ export function explorerRank(totalStars: number): { title: string; next: number 
   }
   return { title: current[1], next }
 }
+
+/** What a slot falls back to when a wardrobe item is taken off. */
+export const TAKE_OFF_VALUE: Record<WardrobeItem['field'], string> = { accessory: 'none', backpack: 'explorer', outfit: 'hoodie' }
+
+export function isWearing(avatar: Record<WardrobeItem['field'], string>, item: WardrobeItem): boolean {
+  return avatar[item.field] === item.value
+}
+
+/** Put an owned item on. Returns null if the item is not owned (wearing requires buying first). */
+export function wearItem<A extends Record<WardrobeItem['field'], string>>(avatar: A, item: WardrobeItem, owned: readonly string[]): A | null {
+  if (!owned.includes(item.id)) return null
+  return { ...avatar, [item.field]: item.value }
+}
+
+export function takeOffItem<A extends Record<WardrobeItem['field'], string>>(avatar: A, item: WardrobeItem): A {
+  return isWearing(avatar, item) ? { ...avatar, [item.field]: TAKE_OFF_VALUE[item.field] } : avatar
+}
+
+/** Preview any item (owned or not) without saving — "try on" in the shop. */
+export function tryOnItem<A extends Record<WardrobeItem['field'], string>>(avatar: A, item: WardrobeItem): A {
+  return { ...avatar, [item.field]: item.value }
+}

@@ -69,11 +69,33 @@ const chipClass = (selected: boolean, disabled?: boolean) =>
     disabled ? 'cursor-default opacity-90' : 'cursor-grab active:cursor-grabbing',
   )
 
-function Gem({ choice, selected, onTap, onDrop, disabled, dataAttr }: { choice: Choice; selected: boolean; onTap: () => void; onDrop: (t: string) => void; disabled?: boolean; dataAttr: Record<string, string> }) {
+function Gem({
+  choice,
+  selected,
+  onTap,
+  onDrop,
+  disabled,
+  dataAttr,
+}: {
+  choice: Choice
+  selected: boolean
+  onTap: () => void
+  onDrop: (t: string) => void
+  disabled?: boolean
+  dataAttr: Record<string, string>
+}) {
   const d = useDragChip(choice.id, onTap, onDrop, disabled)
   return (
     <>
-      <motion.div layoutId={`gem-${choice.id}`} role="button" tabIndex={disabled ? -1 : 0} aria-pressed={selected} className={chipClass(selected, disabled)} {...d.handlers} {...dataAttr}>
+      <motion.div
+        layoutId={`gem-${choice.id}`}
+        role="button"
+        tabIndex={disabled ? -1 : 0}
+        aria-pressed={selected}
+        className={chipClass(selected, disabled)}
+        {...d.handlers}
+        {...dataAttr}
+      >
         {choice.text}
       </motion.div>
       <Ghost pos={d.ghost}>
@@ -87,7 +109,19 @@ function Gem({ choice, selected, onTap, onDrop, disabled, dataAttr }: { choice: 
 // Multiple choice: answer stones
 // ---------------------------------------------------------------------------
 
-export function AnswerStones({ choices, value, onChange, disabled, labelledBy }: { choices: Choice[]; value: string | null; onChange: (id: string) => void; disabled?: boolean; labelledBy?: string }) {
+export function AnswerStones({
+  choices,
+  value,
+  onChange,
+  disabled,
+  labelledBy,
+}: {
+  choices: Choice[]
+  value: string | null
+  onChange: (id: string) => void
+  disabled?: boolean
+  labelledBy?: string
+}) {
   const two = choices.length === 2
   return (
     <div role="radiogroup" aria-labelledby={labelledBy} className={cn('grid gap-3', two ? 'grid-cols-2' : 'sm:grid-cols-2')}>
@@ -112,7 +146,14 @@ export function AnswerStones({ choices, value, onChange, disabled, labelledBy }:
               two && 'justify-center text-center font-display text-2xl',
             )}
           >
-            <span aria-hidden className={cn('grid size-9 shrink-0 place-items-center rounded-xl font-display text-lg font-bold', selected ? 'bg-[#ea580c] text-white' : 'bg-paper text-ink-muted', two && 'absolute top-2 left-2 size-7 text-sm')}>
+            <span
+              aria-hidden
+              className={cn(
+                'grid size-9 shrink-0 place-items-center rounded-xl font-display text-lg font-bold',
+                selected ? 'bg-[#ea580c] text-white' : 'bg-paper text-ink-muted',
+                two && 'absolute top-2 left-2 size-7 text-sm',
+              )}
+            >
               {i + 1}
             </span>
             <span className="text-[17px] leading-snug">{c.text}</span>
@@ -127,7 +168,23 @@ export function AnswerStones({ choices, value, onChange, disabled, labelledBy }:
 // Numeric: carved display + on-screen keypad
 // ---------------------------------------------------------------------------
 
-export function NumberPad({ value, onChange, unit, disabled, placeholder, onEnter, labelledBy }: { value: string; onChange: (v: string) => void; unit?: string; disabled?: boolean; placeholder?: string; onEnter?: () => void; labelledBy?: string }) {
+export function NumberPad({
+  value,
+  onChange,
+  unit,
+  disabled,
+  placeholder,
+  onEnter,
+  labelledBy,
+}: {
+  value: string
+  onChange: (v: string) => void
+  unit?: string
+  disabled?: boolean
+  placeholder?: string
+  onEnter?: () => void
+  labelledBy?: string
+}) {
   const [coarse, setCoarse] = useState(false)
   useEffect(() => {
     if (typeof matchMedia !== 'undefined') setCoarse(matchMedia('(pointer: coarse)').matches)
@@ -171,7 +228,14 @@ export function NumberPad({ value, onChange, unit, disabled, placeholder, onEnte
       </div>
       <div className="grid grid-cols-3 gap-2" aria-label="Number keypad">
         {keys.map((k) => (
-          <button key={k} type="button" disabled={disabled} onClick={() => press(k)} className="btn-game light !min-h-12 !w-14 !px-0 !text-2xl" aria-label={k === '−' ? 'Change sign' : k}>
+          <button
+            key={k}
+            type="button"
+            disabled={disabled}
+            onClick={() => press(k)}
+            className="btn-game light !min-h-12 !w-14 !px-0 !text-2xl"
+            aria-label={k === '−' ? 'Change sign' : k}
+          >
             {k}
           </button>
         ))}
@@ -190,7 +254,23 @@ export function NumberPad({ value, onChange, unit, disabled, placeholder, onEnte
 // Text answers
 // ---------------------------------------------------------------------------
 
-export function PlankInput({ value, onChange, disabled, placeholder, wide, onEnter, labelledBy }: { value: string; onChange: (v: string) => void; disabled?: boolean; placeholder?: string; wide?: boolean; onEnter?: () => void; labelledBy?: string }) {
+export function PlankInput({
+  value,
+  onChange,
+  disabled,
+  placeholder,
+  wide,
+  onEnter,
+  labelledBy,
+}: {
+  value: string
+  onChange: (v: string) => void
+  disabled?: boolean
+  placeholder?: string
+  wide?: boolean
+  onEnter?: () => void
+  labelledBy?: string
+}) {
   return (
     <>
       <label className="sr-only" htmlFor={`${labelledBy}-text`}>
@@ -306,7 +386,15 @@ export function SocketBoard({
           {options
             .filter((o) => !used.has(o.id))
             .map((o) => (
-              <Gem key={o.id} choice={o} selected={picked === o.id} disabled={disabled} onTap={() => setPicked(picked === o.id ? null : o.id)} onDrop={(row) => place(o.id, row)} dataAttr={{ [rightAttr]: o.id }} />
+              <Gem
+                key={o.id}
+                choice={o}
+                selected={picked === o.id}
+                disabled={disabled}
+                onTap={() => setPicked(picked === o.id ? null : o.id)}
+                onDrop={(row) => place(o.id, row)}
+                dataAttr={{ [rightAttr]: o.id }}
+              />
             ))}
           {options.every((o) => used.has(o.id)) && <span className="py-2 text-sm font-semibold text-ink-muted">All placed! Tap a placed answer to take it back.</span>}
         </div>

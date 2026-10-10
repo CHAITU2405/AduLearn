@@ -132,10 +132,19 @@ export function ChallengePanel(props: ChallengePanelProps) {
     setAiBusy(true)
     const res =
       kind === 'explain' && result
-        ? await alternativeExplanation(prefs.ai, { conceptName: props.conceptName, prompt: q.view.prompt, approvedExplanation: result.grade.explanation, answerDisplay: result.grade.answerDisplay }, { signal: ctrl.signal })
+        ? await alternativeExplanation(
+            prefs.ai,
+            { conceptName: props.conceptName, prompt: q.view.prompt, approvedExplanation: result.grade.explanation, answerDisplay: result.grade.answerDisplay },
+            { signal: ctrl.signal },
+          )
         : await contextualHint(
             prefs.ai,
-            { conceptName: props.conceptName, prompt: q.view.prompt, approvedHint: q.hints[Math.max(0, hintsShown - 1)] ?? q.hints[0], revealsAnswer: (t) => vault.revealsAnswer(q.instanceId, t) },
+            {
+              conceptName: props.conceptName,
+              prompt: q.view.prompt,
+              approvedHint: q.hints[Math.max(0, hintsShown - 1)] ?? q.hints[0],
+              revealsAnswer: (t) => vault.revealsAnswer(q.instanceId, t),
+            },
             { signal: ctrl.signal },
           )
     if (!ctrl.signal.aborted) {
@@ -151,11 +160,32 @@ export function ChallengePanel(props: ChallengePanelProps) {
   const praise = PRAISE[q.instanceId.charCodeAt(q.instanceId.length - 1) % PRAISE.length]
 
   const renderPart = (part: PartView, value: PartResponse, set: (v: PartResponse) => void, labelledBy: string) => {
-    if (part.kind === 'mcq' && value.kind === 'mcq') return <AnswerStones choices={part.choices} value={value.choiceId} onChange={(id) => set({ kind: 'mcq', choiceId: id })} disabled={disabled} labelledBy={labelledBy} />
+    if (part.kind === 'mcq' && value.kind === 'mcq')
+      return <AnswerStones choices={part.choices} value={value.choiceId} onChange={(id) => set({ kind: 'mcq', choiceId: id })} disabled={disabled} labelledBy={labelledBy} />
     if (part.kind === 'numeric' && value.kind === 'numeric')
-      return <NumberPad value={value.value} onChange={(v) => set({ kind: 'numeric', value: v })} unit={part.unit} disabled={disabled} placeholder={part.placeholder} onEnter={() => void submit()} labelledBy={labelledBy} />
+      return (
+        <NumberPad
+          value={value.value}
+          onChange={(v) => set({ kind: 'numeric', value: v })}
+          unit={part.unit}
+          disabled={disabled}
+          placeholder={part.placeholder}
+          onEnter={() => void submit()}
+          labelledBy={labelledBy}
+        />
+      )
     if (part.kind === 'text' && value.kind === 'text')
-      return <PlankInput value={value.value} onChange={(v) => set({ kind: 'text', value: v })} disabled={disabled} placeholder={part.placeholder} wide={part.mode !== 'fill'} onEnter={() => void submit()} labelledBy={labelledBy} />
+      return (
+        <PlankInput
+          value={value.value}
+          onChange={(v) => set({ kind: 'text', value: v })}
+          disabled={disabled}
+          placeholder={part.placeholder}
+          wide={part.mode !== 'fill'}
+          onEnter={() => void submit()}
+          labelledBy={labelledBy}
+        />
+      )
     return null
   }
 
@@ -170,7 +200,12 @@ export function ChallengePanel(props: ChallengePanelProps) {
             <span className="text-[#cbd5e1]">{'◆'.repeat(3 - q.difficulty)}</span>
           </span>
           {props.reason && prefs.showReasons && feedback === 'full' && (
-            <button type="button" onClick={() => setShowWhy((v) => !v)} aria-expanded={showWhy} className="ml-auto inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-bold text-ink-muted hover:bg-white">
+            <button
+              type="button"
+              onClick={() => setShowWhy((v) => !v)}
+              aria-expanded={showWhy}
+              className="ml-auto inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-bold text-ink-muted hover:bg-white"
+            >
               <HelpCircle className="size-4" aria-hidden /> Why this question?
             </button>
           )}
@@ -204,7 +239,14 @@ export function ChallengePanel(props: ChallengePanelProps) {
                     {part}
                     {i < arr.length - 1 && (
                       <span className="mx-1 inline-block align-middle">
-                        <PlankInput value={response.value} onChange={(v) => setResponse({ kind: 'text', value: v })} disabled={disabled} placeholder="?" onEnter={() => void submit()} labelledBy={promptId} />
+                        <PlankInput
+                          value={response.value}
+                          onChange={(v) => setResponse({ kind: 'text', value: v })}
+                          disabled={disabled}
+                          placeholder="?"
+                          onEnter={() => void submit()}
+                          labelledBy={promptId}
+                        />
                       </span>
                     )}
                   </span>
@@ -227,16 +269,29 @@ export function ChallengePanel(props: ChallengePanelProps) {
             </ol>
           )}
           {b.kind === 'match' && response.kind === 'match' && (
-            <SocketBoard kind="match" rows={b.left.map((l) => ({ id: l.id, label: l.text, ariaLabel: l.text }))} options={b.right} pairs={response.pairs} onChange={(pairs) => setResponse({ kind: 'match', pairs })} disabled={disabled} />
+            <SocketBoard
+              kind="match"
+              rows={b.left.map((l) => ({ id: l.id, label: l.text, ariaLabel: l.text }))}
+              options={b.right}
+              pairs={response.pairs}
+              onChange={(pairs) => setResponse({ kind: 'match', pairs })}
+              disabled={disabled}
+            />
           )}
           {b.kind === 'label' && response.kind === 'label' && (
             <div className="grid gap-4 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:items-start">
-              <div className="rounded-2xl border-[3px] border-white bg-white p-2 shadow-soft">{b.diagram === 'plant-cell' && <PlantCell markers={b.markers} className="w-full" />}</div>
+              <div className="rounded-2xl border-[3px] border-white bg-white p-2 shadow-soft">
+                {b.diagram === 'plant-cell' && <PlantCell markers={b.markers} className="w-full" />}
+              </div>
               <SocketBoard
                 kind="label"
                 rows={b.markers.map((m) => ({
                   id: m.id,
-                  label: <span className="inline-flex items-center gap-2"><span className="grid size-8 place-items-center rounded-full bg-ink font-display text-white">{m.number}</span>Part {m.number}</span>,
+                  label: (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="grid size-8 place-items-center rounded-full bg-ink font-display text-white">{m.number}</span>Part {m.number}
+                    </span>
+                  ),
                   ariaLabel: `Part ${m.number}`,
                 }))}
                 options={b.options}
@@ -246,11 +301,22 @@ export function ChallengePanel(props: ChallengePanelProps) {
               />
             </div>
           )}
-          {b.kind === 'order' && response.kind === 'order' && <WordBuilder tokens={b.tokens} value={response.tokenIds} onChange={(tokenIds) => setResponse({ kind: 'order', tokenIds })} disabled={disabled} />}
+          {b.kind === 'order' && response.kind === 'order' && (
+            <WordBuilder tokens={b.tokens} value={response.tokenIds} onChange={(tokenIds) => setResponse({ kind: 'order', tokenIds })} disabled={disabled} />
+          )}
 
           {/* Pip's hints */}
           {!result && props.supportMode && hintsShown === 0 && maxHints > 0 && (
-            <PipSays className="mt-5" size="sm" mood="thinking" actions={<button type="button" className="btn-game yellow !min-h-9 !px-3 !text-sm" onClick={askPip}>Yes, give me a hint</button>}>
+            <PipSays
+              className="mt-5"
+              size="sm"
+              mood="thinking"
+              actions={
+                <button type="button" className="btn-game yellow !min-h-9 !px-3 !text-sm" onClick={askPip}>
+                  Yes, give me a hint
+                </button>
+              }
+            >
               This one’s been tricky. Want a hint? Using hints is totally fine!
             </PipSays>
           )}
@@ -258,12 +324,22 @@ export function ChallengePanel(props: ChallengePanelProps) {
             <PipSays className="mt-5" size="sm" mood="talking">
               <span className="flex items-start gap-1.5">
                 <Lightbulb className="mt-0.5 size-4 shrink-0 text-[#d97706]" aria-hidden />
-                <span>{q.hints.slice(0, hintsShown).map((h, i) => <span key={i} className="block">{h}</span>)}</span>
+                <span>
+                  {q.hints.slice(0, hintsShown).map((h, i) => (
+                    <span key={i} className="block">
+                      {h}
+                    </span>
+                  ))}
+                </span>
               </span>
             </PipSays>
           )}
           {ai?.kind === 'hint' && !result && <AiNote ai={ai} />}
-          {error && <p className="mt-4 rounded-2xl bg-coral-soft p-3 font-semibold text-coral-deep" role="alert">{error}</p>}
+          {error && (
+            <p className="mt-4 rounded-2xl bg-coral-soft p-3 font-semibold text-coral-deep" role="alert">
+              {error}
+            </p>
+          )}
 
           {!result && (
             <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
@@ -282,7 +358,9 @@ export function ChallengePanel(props: ChallengePanelProps) {
               </button>
             </div>
           )}
-          {!result && !complete && <p className="mt-2 text-right text-xs text-ink-muted">{b.kind === 'mcq' ? 'Pick an answer stone (or press 1–4).' : 'Finish your answer to check it.'}</p>}
+          {!result && !complete && (
+            <p className="mt-2 text-right text-xs text-ink-muted">{b.kind === 'mcq' ? 'Pick an answer stone (or press 1–4).' : 'Finish your answer to check it.'}</p>
+          )}
         </form>
 
         <AnimatePresence>

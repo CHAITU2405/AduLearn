@@ -2,9 +2,9 @@ import Dexie from 'dexie'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { DEFAULT_AVATAR } from '@/core/avatar'
 import { initialMastery } from '@/core/learning/mastery'
-import { AduLearnDB, DB_NAME, getDb, resetDbInstance } from './db'
+import { AduLearnDB, DB_NAME, DB_VERSION, getDb, resetDbInstance } from './db'
 import { buildExport, importBundle, parseImport } from './exportImport'
-import { attemptRepo, masteryRepo, profileRepo, progressRepo, progressSnapshot, rewardRepo, settingsRepo } from './repositories'
+import { attemptRepo, masteryRepo, profileRepo, progressRepo, progressSnapshot, rewardRepo, settingsRepo, walletRepo } from './repositories'
 
 async function freshDb() {
   resetDbInstance()
@@ -73,6 +73,19 @@ describe('IndexedDB persistence', () => {
     expect(await rewardRepo.forProfile(p.id)).toHaveLength(1)
   })
 
+  it('keeps a wallet: coins, purchases and found scrolls persist; purchases need enough coins', async () => {
+    const p = await profileRepo.create('Shopper', DEFAULT_AVATAR)
+    expect(await walletRepo.buy(p.id, 'acc-explorer-hat')).toEqual({ ok: false, reason: 'not-enough-coins' })
+    await walletRepo.addCoins(p.id, 70)
+    expect(await walletRepo.buy(p.id, 'acc-explorer-hat')).toMatchObject({ ok: true, coins: 10 })
+    expect(await walletRepo.buy(p.id, 'acc-explorer-hat')).toEqual({ ok: false, reason: 'already-owned' })
+    expect(await walletRepo.findFact(p.id, 'fact-cell')).toBe(true)
+    expect(await walletRepo.findFact(p.id, 'fact-cell')).toBe(false)
+    getDb().close()
+    resetDbInstance()
+    expect(await walletRepo.get(p.id)).toMatchObject({ coins: 10, totalEarned: 70, owned: ['acc-explorer-hat'], facts: ['fact-cell'] })
+  })
+
   it('removes all records with a profile', async () => {
     const p = await profileRepo.create('A', DEFAULT_AVATAR)
     await attemptRepo.add(attempt(p.id))
@@ -83,7 +96,7 @@ describe('IndexedDB persistence', () => {
 })
 
 describe('database migrations', () => {
-  it('upgrades a version 1 database to version 2 and backfills mastery fields', async () => {
+  it('upgrades a version 1 database to the latest version, backfilling mastery fields and wallets', async () => {
     // Create a v1-only database with an old-style mastery record.
     const v1 = new Dexie(DB_NAME)
     v1.version(1).stores({
@@ -100,15 +113,19 @@ describe('database migrations', () => {
     })
     await v1.open()
     await v1.table('mastery').put({ profileId: 'p1', conceptId: 'c1', estimate: 0.5, evidence: 3, level: 2, streakCorrect: 0, streakIncorrect: 0, updatedAt: 1 })
+    await v1.table('profiles').put({ id: 'p1', nickname: 'Old', avatar: DEFAULT_AVATAR, createdAt: 1, lastActiveAt: 1 })
+    await v1.table('attempts').bulkAdd([attempt('p1'), attempt('p1', { correct: false }), attempt('p1', { context: 'diagnostic' })])
     v1.close()
 
     const db = new AduLearnDB()
     await db.open()
-    expect(db.verno).toBe(2)
+    expect(db.verno).toBe(DB_VERSION)
     const m = await db.mastery.get(['p1', 'c1'])
     expect(m).toMatchObject({ estimate: 0.5, correctedMisconceptions: [], independentVariants: [], misconceptions: {} })
     await db.aiCache.put({ key: 'k', text: 't', model: 'm', createdAt: 1 })
     expect(await db.aiCache.count()).toBe(1)
+    // v3: one correct non-check answer → 10 coins.
+    expect(await db.wallets.get('p1')).toMatchObject({ coins: 10, owned: [], facts: [] })
     db.close()
   })
 })

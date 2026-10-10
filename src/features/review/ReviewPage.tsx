@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { RotateCcw } from 'lucide-react'
 import { useRequiredProfile } from '@/app/context'
-import { QuestionPlayer } from '@/components/questions/QuestionPlayer'
+import { ChallengePanel } from '@/components/game/challenge/ChallengePanel'
+import { themeForSubject } from '@/components/game/Stage'
 import { Button, Card, EmptyState, LinkButton, PageHeader, Pill, Spinner } from '@/components/ui'
 import { conceptName } from '@/content'
 import type { QuestionResponse } from '@/core/content/types'
@@ -41,10 +42,11 @@ export function ReviewPage() {
       </PageHeader>
       {active ? (
         <div className="flex flex-col gap-4">
-          <QuestionPlayer
+          <ChallengePanel
             key={active.question.instanceId}
             question={active.question}
             conceptName={conceptName(active.question.conceptId)}
+            theme={themeForSubject(active.question.subject)}
             hintAllowance="unlimited"
             feedback="full"
             onSubmit={onSubmit}

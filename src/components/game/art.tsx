@@ -162,7 +162,15 @@ export function Crystal({ color = '#22d3ee', ...p }: P & { color?: string }) {
 export function Waves({ x, y, w = 200 }: P & { w?: number }) {
   return (
     <g transform={`translate(${x} ${y})`} opacity="0.6">
-      <path className="water-flow" d={`M0 0 q12 -6 24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0`} transform={`scale(${w / 192} 1)`} fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" />
+      <path
+        className="water-flow"
+        d={`M0 0 q12 -6 24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0`}
+        transform={`scale(${w / 192} 1)`}
+        fill="none"
+        stroke="#fff"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
     </g>
   )
 }

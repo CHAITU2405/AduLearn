@@ -2,7 +2,15 @@
 
 **Team Spidey** · Gamified learning prototype for Class 8 students following the Andhra Pradesh SSC curriculum.
 
-AduLearn turns school learning into a story-driven adventure. Students create an avatar, explore a connected world with three subject regions, help characters by solving freshly generated questions, get hints and explanations when they struggle, and face cumulative boss challenges. Progress is stored locally in the browser — no account, server or internet connection is needed to play.
+AduLearn turns school learning into a story-driven adventure game. Students create an avatar, walk around a painted island and its three subject regions with Pip (their mascot companion), take on missions given by characters, solve freshly generated challenges with game-style controls, battle storm bosses, earn stars and coins, and watch the world change as they learn. Progress is stored locally in the browser — no account, server or internet connection is needed to play.
+
+### The game layer
+
+- **Explorable maps** — a painted overworld (Isle of Learning) and three painted region maps. The avatar walks between places (tap/click, or arrow keys + Enter); Pip follows and talks. Places show locked / ready (“!”) / completed (stars). Locked places block the path. Scenery reacts to progress (storm clouds lift, flags rise, barriers open, sparkles appear).
+- **Missions as game scenes** — visual-novel story intro, characters either side of the challenge, a progress track (bridge planks, books, energy cells), answer stones (keys 1–4), a number keypad, drag-or-tap boards for matching / sentence building / diagram labelling, “Ask Pip” hints, coin bursts, breaking hearts, 1–3 star victory screens.
+- **Boss battles** — an arena with the boss's health bar; correct answers fire a knowledge bolt, wrong answers let the boss strike back.
+- **Economy and Backpack** — coins only for new correct answers (fewer with hints, a few for review, none for checks) and first-time scroll discoveries; stars per mission/boss; explorer ranks. The Backpack (HUD bag icon or Basecamp) has a **wardrobe shop** (try items on, fixed prices, confirm before buying, wear / take off — no randomness or loot boxes), **badges**, found **scrolls** with hints for the rest, and **journey** stars per region. Synthesized sound effects with a mute button.
+- **Art** — painted backgrounds and a boss sprite generated for the project (see [`docs/ASSETS.md`](docs/ASSETS.md)); avatars, NPCs, Pip and all interactive pieces are SVG so they stay customisable and animated.
 
 > **Content notice.** The bundled chapters are **illustrative samples** written for this prototype. They have **not** been checked against the official AP SSC Class 8 textbooks and are not a complete curriculum. Every question template carries review and curriculum-alignment metadata; teachers can approve or reject templates on the device.
 
@@ -58,6 +66,8 @@ The app runs at <http://localhost:5173>.
 | `npm test` | Unit, integration and component tests (Vitest) |
 | `npm run test:e2e` | Browser tests (Playwright) |
 | `npm run format` | Format with Prettier |
+| `node scripts/screenshots.mjs <dir>` | Capture the main game screens (needs the e2e build served on port 4175) |
+| `node scripts/optimize-images.mjs <dir>` | Convert source art PNGs to optimised WebP |
 
 ### Browser tests
 
@@ -192,3 +202,12 @@ React Native has deliberately not been added to this repository.
 ## Branding
 
 Place the supplied AduLearn logo at `src/assets/brand/adulearn-logo.png` (or `.svg` / `.webp`). It is picked up automatically at build time; until then a simple text wordmark placeholder is shown. Team Spidey appears in the footer and About page.
+
+## Screenshots
+
+| | |
+| --- | --- |
+| ![Title screen](docs/screenshots/title.webp) | ![World map](docs/screenshots/world-map.webp) |
+| ![Region map](docs/screenshots/region-map.webp) | ![Mission](docs/screenshots/mission.webp) |
+| ![Boss battle](docs/screenshots/boss-battle.webp) | ![Avatar editor](docs/screenshots/avatar.webp) |
+| ![Backpack wardrobe](docs/screenshots/backpack.webp) | |

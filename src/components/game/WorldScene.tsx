@@ -65,7 +65,7 @@ function saveNode(key: string, id: string) {
   }
 }
 
-export function WorldScene({ width, height, graph, nodes, background, avatar, startNodeId, storageKey, intro, hud, viewHeight = 820 }: Props) {
+export function WorldScene({ width, height, graph, nodes, background, avatar, startNodeId, storageKey, intro, hud, viewHeight = 1000 }: Props) {
   const { prefs } = usePrefs()
   const reduce = prefs.motion === 'reduce' || (prefs.motion === 'system' && typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches)
   const byId = useMemo(() => new Map(nodes.map((n) => [n.id, n])), [nodes])
@@ -169,8 +169,16 @@ export function WorldScene({ width, height, graph, nodes, background, avatar, st
       setWalking(true)
       play('step')
       anims.current.forEach((a) => a.stop())
-      const ax = animate(px, pts.map((p) => p.x), { duration, times, ease: 'linear' })
-      const ay = animate(py, pts.map((p) => p.y), { duration, times, ease: 'linear' })
+      const ax = animate(
+        px,
+        pts.map((p) => p.x),
+        { duration, times, ease: 'linear' },
+      )
+      const ay = animate(
+        py,
+        pts.map((p) => p.y),
+        { duration, times, ease: 'linear' },
+      )
       anims.current = [ax, ay]
       void Promise.all([ax, ay]).then(() => {
         setWalking(false)
@@ -208,17 +216,27 @@ export function WorldScene({ width, height, graph, nodes, background, avatar, st
   }, [graph, current, walkTo, byId])
 
   const cardNode = card ? byId.get(card) : null
+  const explorerOnRight = px.get() * scale + camX.get() > size.w / 2
+  const cardSide = explorerOnRight ? 'left-4' : 'right-4'
+  const bubbleSide = explorerOnRight ? 'right-4' : 'left-4'
   const counter = Math.min(2, Math.max(1, 1 / scale))
 
   return (
     <div ref={viewport} className="relative h-dvh w-full overflow-hidden bg-[#7dd3fc] select-none" aria-label="Explorable map">
-      <motion.div className="absolute top-0 left-0" style={{ x: camX, y: camY, width, height, scale, transformOrigin: '0 0' }}>
+      <motion.div
+        className="absolute top-0 left-0"
+        style={{ x: camX, y: camY, width, height, scale, transformOrigin: '0 0' }}
+        onPointerDown={(e) => {
+          // Tapping empty ground dismisses the location card so places behind it can be reached.
+          if (!(e.target as HTMLElement).closest('button')) setCard(null)
+        }}
+      >
         <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="absolute inset-0" aria-hidden>
           {background}
           {graph.edges.map((e) => (
             <g key={`${e.a}-${e.b}`}>
-              <path d={edgePathData(graph, e.a, e.b)} fill="none" stroke="#fde68a" strokeWidth="26" strokeLinecap="round" opacity="0.9" />
-              <path d={edgePathData(graph, e.a, e.b)} fill="none" stroke="#f59e0b" strokeWidth="4" strokeDasharray="2 18" strokeLinecap="round" opacity="0.8" />
+              <path d={edgePathData(graph, e.a, e.b)} fill="none" stroke="#fff7d6" strokeWidth="22" strokeLinecap="round" opacity="0.55" />
+              <path d={edgePathData(graph, e.a, e.b)} fill="none" stroke="#fff" strokeWidth="7" strokeDasharray="0.1 20" strokeLinecap="round" opacity="0.95" />
             </g>
           ))}
         </svg>
@@ -230,13 +248,13 @@ export function WorldScene({ width, height, graph, nodes, background, avatar, st
         {/* Pip follows the explorer */}
         <motion.div className="pointer-events-none absolute top-0 left-0" style={{ x: pipX, y: pipY }}>
           <div className="pip-float absolute -top-[150px] left-[22px] size-[54px]">
-            <Pip mood={walking ? 'happy' : 'idle'} className="size-full" />
+            <Pip mood={walking ? 'happy' : 'idle'} className="size-full sprite-outline" />
           </div>
         </motion.div>
         {/* The explorer */}
         <motion.div className="pointer-events-none absolute top-0 left-0 z-10" style={{ x: px, y: py }}>
           <div className="absolute -top-[118px] -left-[40px] h-[120px] w-[80px]" style={{ transform: `scaleX(${facing})` }}>
-            <AvatarFigure config={avatar} walking={walking} className="size-full drop-shadow" />
+            <AvatarFigure config={avatar} walking={walking} className="size-full sprite-shadow" />
           </div>
         </motion.div>
       </motion.div>
@@ -244,7 +262,7 @@ export function WorldScene({ width, height, graph, nodes, background, avatar, st
       {hud}
 
       {/* Pip's speech */}
-      <div className="pointer-events-none absolute bottom-4 left-4 z-20 max-w-[min(92vw,26rem)]">
+      <div className={cn('pointer-events-none absolute bottom-4 z-20 max-w-[min(92vw,26rem)]', cardNode && !walking ? bubbleSide : 'left-4')}>
         {bubble && (
           <div className="pointer-events-auto">
             <PipSays
@@ -268,7 +286,7 @@ export function WorldScene({ width, height, graph, nodes, background, avatar, st
           key={cardNode.id}
           initial={{ y: 40, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="absolute right-4 bottom-4 z-30 w-[min(92vw,22rem)] rounded-3xl border-4 border-white bg-white/95 p-4 shadow-lift backdrop-blur"
+          className={cn('absolute bottom-4 z-30 w-[min(92vw,22rem)] rounded-3xl border-4 border-white bg-white/95 p-4 shadow-lift backdrop-blur', cardSide)}
           role="region"
           aria-label={cardNode.label}
         >
@@ -285,7 +303,11 @@ export function WorldScene({ width, height, graph, nodes, background, avatar, st
             </p>
           ) : (
             cardNode.action && (
-              <button type="button" className={cn('btn-game mt-4 w-full', cardNode.kind === 'boss' ? 'coral' : cardNode.state === 'completed' ? 'light' : 'orange')} onClick={() => cardNode.action!.run()}>
+              <button
+                type="button"
+                className={cn('btn-game mt-4 w-full', cardNode.kind === 'boss' ? 'coral' : cardNode.state === 'completed' ? 'light' : 'orange')}
+                onClick={() => cardNode.action!.run()}
+              >
                 {cardNode.kind === 'boss' && <Swords className="size-5" aria-hidden />}
                 {cardNode.action.label}
               </button>
@@ -299,7 +321,18 @@ export function WorldScene({ width, height, graph, nodes, background, avatar, st
 }
 
 function kindLabel(k: SceneNodeKind): string {
-  return { gate: 'Region gate', mission: 'Mission', boss: 'Boss challenge', check: 'Knowledge check', camp: 'Basecamp', sign: 'Signpost', fact: 'Hidden scroll', exit: 'Path', npc: 'Character', soon: 'Coming soon' }[k]
+  return {
+    gate: 'Region gate',
+    mission: 'Mission',
+    boss: 'Boss challenge',
+    check: 'Knowledge check',
+    camp: 'Basecamp',
+    sign: 'Signpost',
+    fact: 'Hidden scroll',
+    exit: 'Path',
+    npc: 'Character',
+    soon: 'Coming soon',
+  }[k]
 }
 
 export function StarRow({ stars, className, size = 'size-6' }: { stars: number; className?: string; size?: string }) {
@@ -320,11 +353,25 @@ function NodeMarker({ node: n, counter, current, onClick }: { node: SceneNode; c
     <div className="absolute" style={{ left: n.x, top: n.y }}>
       <svg className="pointer-events-none absolute -top-[22px] -left-[60px]" width="120" height="44" aria-hidden>
         <ellipse cx="60" cy="22" rx="52" ry="16" fill={ring} opacity={current ? 0.55 : 0.32} />
-        <ellipse cx="60" cy="22" rx="52" ry="16" fill="none" stroke={ring} strokeWidth="4" strokeDasharray={n.state === 'available' ? '10 8' : undefined} className={n.state === 'available' ? 'water-flow' : undefined} />
+        <ellipse
+          cx="60"
+          cy="22"
+          rx="52"
+          ry="16"
+          fill="none"
+          stroke={ring}
+          strokeWidth="4"
+          strokeDasharray={n.state === 'available' ? '10 8' : undefined}
+          className={n.state === 'available' ? 'water-flow' : undefined}
+        />
       </svg>
       {ch && (
         <div className="pointer-events-none absolute -top-[110px] left-[38px] h-[110px] w-[74px]">
-          {ch.creature ? <CreatureFigure art={ch.creature} className="size-full" /> : ch.look ? <AvatarFigure config={ch.look} className="size-full" /> : null}
+          {ch.creature ? (
+            <CreatureFigure art={ch.creature} className="size-full sprite-outline" />
+          ) : ch.look ? (
+            <AvatarFigure config={ch.look} className="size-full sprite-shadow" />
+          ) : null}
         </div>
       )}
       {/* Status marker */}

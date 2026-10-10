@@ -49,7 +49,16 @@ export function RegionPage() {
     })
     const lockedReason = (n: ChapterNode, st: Record<string, NodeState>) => {
       const pending = n.requires.filter((r) => st[r] !== 'completed' && !chapter.nodes.find((x) => x.id === r && x.kind === 'assessment' && x.optional))
-      return pending.length ? `Complete ${pending.map((id) => nodeTitle(chapter, chapter.nodes.find((x) => x.id === id)!)).join(' and ')} first.` : 'Locked for now.'
+      return pending.length
+        ? `Complete ${pending
+            .map((id) =>
+              nodeTitle(
+                chapter,
+                chapter.nodes.find((x) => x.id === id)!,
+              ),
+            )
+            .join(' and ')} first.`
+        : 'Locked for now.'
     }
     for (const n of chapter.nodes) {
       const p = place(n.id)
@@ -110,7 +119,11 @@ export function RegionPage() {
 
   if (!region || !scene || !chapter) return <Navigate to="/world" replace />
   if (!snapshot || !nodes || !stats) return <Spinner label="Entering the region" />
-  const done = new Set(Object.entries(chapterNodeStates(chapter, snapshot)).filter(([, s]) => s === 'completed').map(([id]) => id))
+  const done = new Set(
+    Object.entries(chapterNodeStates(chapter, snapshot))
+      .filter(([, s]) => s === 'completed')
+      .map(([id]) => id),
+  )
   const regionLocked = chapter.nodes.every((n) => chapterNodeStates(chapter, snapshot)[n.id] === 'locked')
   const Bg = scene.Background
   const firstVisit = done.size === 0
@@ -190,7 +203,10 @@ function SkillsDrawer({ chapter, profileId, onClose }: { chapter: Chapter; profi
                   <ProgressBar value={Math.round((m?.estimate ?? 0) * 100)} max={100} label={`${getConcept(id)?.name} estimate`} tone="violet" className="mt-2" />
                   <p className="mt-1 text-xs text-ink-muted">{explainMastery(m)}</p>
                   {m && m.evidence > 0 && (
-                    <Link to={`/practice/${chapter.id}?concept=${encodeURIComponent(id)}`} className="mt-2 inline-flex items-center gap-1 text-sm font-bold text-[#4338ca] hover:underline">
+                    <Link
+                      to={`/practice/${chapter.id}?concept=${encodeURIComponent(id)}`}
+                      className="mt-2 inline-flex items-center gap-1 text-sm font-bold text-[#4338ca] hover:underline"
+                    >
                       <Dumbbell className="size-4" aria-hidden /> Train at the practice ground
                     </Link>
                   )}

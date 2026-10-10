@@ -133,7 +133,13 @@ function MissionFlow({ mission }: { mission: Mission }) {
       characters={phase === 'play' ? <StageCharacters npcId={mission.characterId} avatar={profile.avatar} npcMood={moods.npc} playerMood={moods.me} /> : undefined}
       bottom={
         phase === 'intro' ? (
-          <VnDialogue scene={SCENES[mission.introSceneId]} avatar={profile.avatar} playerName={profile.nickname} onDone={introDone} doneLabel={mission.lab ? 'To the lab!' : 'Start mission!'} />
+          <VnDialogue
+            scene={SCENES[mission.introSceneId]}
+            avatar={profile.avatar}
+            playerName={profile.nickname}
+            onDone={introDone}
+            doneLabel={mission.lab ? 'To the lab!' : 'Start mission!'}
+          />
         ) : phase === 'outro' ? (
           <VnDialogue scene={SCENES[mission.outroSceneId]} avatar={profile.avatar} playerName={profile.nickname} onDone={outroDone} doneLabel="See rewards" />
         ) : undefined
@@ -160,7 +166,8 @@ function MissionFlow({ mission }: { mission: Mission }) {
         </>
       )}
 
-      {phase === 'lab' && (mission.lab === 'pressure' ? <PressureLab onDone={() => dispatch({ type: 'lab-done' })} /> : <LitmusLab onDone={() => dispatch({ type: 'lab-done' })} />)}
+      {phase === 'lab' &&
+        (mission.lab === 'pressure' ? <PressureLab onDone={() => dispatch({ type: 'lab-done' })} /> : <LitmusLab onDone={() => dispatch({ type: 'lab-done' })} />)}
 
       {phase === 'play' && (
         <>

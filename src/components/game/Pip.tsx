@@ -44,14 +44,15 @@ export function Pip({ mood = 'idle', className, title = 'Pip' }: { mood?: PipMoo
       </defs>
       <circle cx="60" cy="62" r="58" fill="url(#pip-glow)" className="pip-glow" />
       <g className="pip-wing-l">
-        <ellipse cx="22" cy="52" rx="20" ry="12" fill="#a5f3fc" opacity="0.85" stroke="#22d3ee" strokeWidth="2" />
+        <ellipse cx="22" cy="52" rx="20" ry="12" fill="#a5f3fc" fillOpacity="0.9" stroke="#3b2a1e" strokeWidth="2.2" />
       </g>
       <g className="pip-wing-r">
-        <ellipse cx="98" cy="52" rx="20" ry="12" fill="#a5f3fc" opacity="0.85" stroke="#22d3ee" strokeWidth="2" />
+        <ellipse cx="98" cy="52" rx="20" ry="12" fill="#a5f3fc" fillOpacity="0.9" stroke="#3b2a1e" strokeWidth="2.2" />
       </g>
-      <path d="M60 30 Q56 16 64 8" stroke="#b45309" strokeWidth="3" fill="none" strokeLinecap="round" />
-      <path d="M64 1 L66.5 6 L72 6.6 L68 10.3 L69 15.8 L64 13.2 L59 15.8 L60 10.3 L56 6.6 L61.5 6 Z" fill="#fb923c" stroke="#c2410c" strokeWidth="1.2" />
-      <circle cx="60" cy="62" r="34" fill="url(#pip-body)" stroke="#d97706" strokeWidth="2" />
+      <path d="M60 30 Q56 16 64 8" stroke="#3b2a1e" strokeWidth="3" fill="none" strokeLinecap="round" />
+      <path d="M64 1 L66.5 6 L72 6.6 L68 10.3 L69 15.8 L64 13.2 L59 15.8 L60 10.3 L56 6.6 L61.5 6 Z" fill="#fb923c" stroke="#3b2a1e" strokeWidth="1.6" strokeLinejoin="round" />
+      <circle cx="60" cy="62" r="34" fill="url(#pip-body)" stroke="#3b2a1e" strokeWidth="2.6" />
+      <path d="M72 32 C96 44 96 86 66 95 C86 82 90 50 72 32 Z" fill="#b45309" opacity="0.22" />
       <ellipse cx="48" cy="44" rx="9" ry="5" fill="#fff" opacity="0.55" transform="rotate(-25 48 44)" />
       {eyes}
       <circle cx="38" cy="69" r="5" fill="#fb7185" opacity="0.5" />
@@ -87,7 +88,7 @@ export function PipSays({
   return (
     <div className={cn('flex items-end gap-2', side === 'left' && 'flex-row-reverse', className)}>
       <motion.div className={cn('shrink-0 pip-float', size === 'sm' ? 'size-14' : 'size-20')} initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
-        <Pip mood={mood} className="size-full" />
+        <Pip mood={mood} className="size-full sprite-outline" />
       </motion.div>
       <AnimatePresence mode="popLayout">
         {children && (

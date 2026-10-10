@@ -34,7 +34,19 @@ function AnimatedNumber({ value }: { value: number }) {
 
 const iconBtn = 'grid size-11 place-items-center rounded-2xl border-[3px] border-white bg-white/90 text-ink shadow-soft transition-transform hover:-translate-y-0.5 hover:bg-white'
 
-export function GameHud({ profile, title, back, center, compact = false }: { profile: ProfileRecord; title?: string; back?: { to: string; label: string }; center?: ReactNode; compact?: boolean }) {
+export function GameHud({
+  profile,
+  title,
+  back,
+  center,
+  compact = false,
+}: {
+  profile: ProfileRecord
+  title?: string
+  back?: { to: string; label: string }
+  center?: ReactNode
+  compact?: boolean
+}) {
   const stats = useGameStats(profile.id)
   const { prefs, setPrefs } = usePrefs()
   const rank = explorerRank(stats?.totalStars ?? 0)
@@ -46,7 +58,11 @@ export function GameHud({ profile, title, back, center, compact = false }: { pro
             <ArrowLeft className="size-5" aria-hidden /> <span className="hidden sm:inline">{back.label}</span>
           </Link>
         ) : (
-          <Link to="/backpack" className="flex items-center gap-2 rounded-2xl border-[3px] border-white bg-white/90 py-1 pr-3 pl-1 shadow-soft" aria-label={`${profile.nickname}, ${rank.title}. Open backpack`}>
+          <Link
+            to="/backpack"
+            className="flex items-center gap-2 rounded-2xl border-[3px] border-white bg-white/90 py-1 pr-3 pl-1 shadow-soft"
+            aria-label={`${profile.nickname}, ${rank.title}. Open backpack`}
+          >
             <span className="size-10 overflow-hidden rounded-xl bg-brand-soft">
               <AvatarFigure config={profile.avatar} variant="portrait" className="size-full" />
             </span>
@@ -62,10 +78,17 @@ export function GameHud({ profile, title, back, center, compact = false }: { pro
       </div>
       {center && <div className="pointer-events-auto">{center}</div>}
       <div className="pointer-events-auto flex items-center gap-1.5 sm:gap-2">
-        <motion.span id="hud-coins" className="flex h-11 items-center gap-1.5 rounded-2xl border-[3px] border-white bg-[#fef3c7] px-3 font-display text-lg font-bold text-[#92400e] shadow-soft" aria-label={`${stats?.wallet.coins ?? 0} coins`}>
+        <motion.span
+          id="hud-coins"
+          className="flex h-11 items-center gap-1.5 rounded-2xl border-[3px] border-white bg-[#fef3c7] px-3 font-display text-lg font-bold text-[#92400e] shadow-soft"
+          aria-label={`${stats?.wallet.coins ?? 0} coins`}
+        >
           <Coins className="size-5 text-[#ca8a04]" aria-hidden /> <AnimatedNumber value={stats?.wallet.coins ?? 0} />
         </motion.span>
-        <span className="hidden h-11 items-center gap-1.5 rounded-2xl border-[3px] border-white bg-white/90 px-3 font-display text-lg font-bold shadow-soft sm:flex" aria-label={`${stats?.totalStars ?? 0} stars`}>
+        <span
+          className="hidden h-11 items-center gap-1.5 rounded-2xl border-[3px] border-white bg-white/90 px-3 font-display text-lg font-bold shadow-soft sm:flex"
+          aria-label={`${stats?.totalStars ?? 0} stars`}
+        >
           <Star className="size-5 fill-sun text-[#ca8a04]" aria-hidden /> {stats?.totalStars ?? 0}
         </span>
         {!compact && (
@@ -81,7 +104,13 @@ export function GameHud({ profile, title, back, center, compact = false }: { pro
             </Link>
           </>
         )}
-        <button type="button" className={iconBtn} onClick={() => setPrefs((p) => ({ ...p, sound: !p.sound }))} aria-label={prefs.sound ? 'Mute sound' : 'Turn sound on'} aria-pressed={prefs.sound}>
+        <button
+          type="button"
+          className={iconBtn}
+          onClick={() => setPrefs((p) => ({ ...p, sound: !p.sound }))}
+          aria-label={prefs.sound ? 'Mute sound' : 'Turn sound on'}
+          aria-pressed={prefs.sound}
+        >
           {prefs.sound ? <Volume2 className="size-5" aria-hidden /> : <VolumeX className="size-5" aria-hidden />}
         </button>
         {!compact && (

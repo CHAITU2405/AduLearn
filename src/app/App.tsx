@@ -2,13 +2,8 @@ import { lazy, Suspense, useEffect, useState, type ComponentType, type ReactNode
 import { createBrowserRouter, Navigate, Outlet, RouterProvider, useLocation } from 'react-router'
 import { Notice, Spinner } from '@/components/ui'
 import { openDatabase, type DbStatus } from '@/data/db'
-import { BossPage } from '@/features/boss/BossPage'
-import { MissionPage } from '@/features/mission/MissionPage'
-import { PracticePage } from '@/features/mission/PracticePage'
-import { OnboardingPage } from '@/features/onboarding/OnboardingPage'
 import { WelcomePage } from '@/features/onboarding/WelcomePage'
 import { ChapterPage } from '@/features/world/ChapterPage'
-import { RegionPage } from '@/features/world/RegionPage'
 import { WorldPage } from '@/features/world/WorldPage'
 import { AppShell } from './AppShell'
 
@@ -19,6 +14,12 @@ const AssessmentPage = named(() => import('@/features/assessment/AssessmentPage'
 const ProgressPage = named(() => import('@/features/progress/ProgressPage'), 'ProgressPage')
 const ReviewPage = named(() => import('@/features/review/ReviewPage'), 'ReviewPage')
 const SettingsPage = named(() => import('@/features/settings/SettingsPage'), 'SettingsPage')
+const BossPage = named(() => import('@/features/boss/BossPage'), 'BossPage')
+const MissionPage = named(() => import('@/features/mission/MissionPage'), 'MissionPage')
+const PracticePage = named(() => import('@/features/mission/PracticePage'), 'PracticePage')
+const OnboardingPage = named(() => import('@/features/onboarding/OnboardingPage'), 'OnboardingPage')
+const RegionPage = named(() => import('@/features/world/RegionPage'), 'RegionPage')
+const BackpackPage = named(() => import('@/features/backpack/BackpackPage'), 'BackpackPage')
 const TeacherPage = named(() => import('@/features/teacher/TeacherPage'), 'TeacherPage')
 import { PrefsProvider, ProfileProvider, useProfile } from './context'
 
@@ -63,7 +64,10 @@ const router = createBrowserRouter([
     // Full-screen game layer (no portal header/footer).
     element: <GameShell />,
     children: [
+      { path: '/', element: <Landing /> },
+      { path: '/start', element: <OnboardingPage /> },
       { path: '/world', element: guard(<WorldPage />) },
+      { path: '/backpack', element: guard(<BackpackPage />) },
       { path: '/region/:regionId', element: guard(<RegionPage />) },
       { path: '/mission/:missionId', element: guard(<MissionPage />) },
       { path: '/practice/:chapterId', element: guard(<PracticePage />) },
@@ -73,10 +77,7 @@ const router = createBrowserRouter([
   {
     element: <AppShell />,
     children: [
-      { path: '/', element: <Landing /> },
-      { path: '/start', element: <OnboardingPage /> },
       { path: '/home', element: <Navigate to="/world" replace /> },
-      { path: '/backpack', element: <Navigate to="/progress" replace /> },
       { path: '/chapter/:chapterId', element: guard(<ChapterPage />) },
       { path: '/assessment/:chapterId/:kind', element: guard(<AssessmentPage />) },
       { path: '/review', element: guard(<ReviewPage />) },

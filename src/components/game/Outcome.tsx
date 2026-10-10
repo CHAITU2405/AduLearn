@@ -34,7 +34,9 @@ export function OutcomeCard({
         transition={{ type: 'spring', stiffness: 200, damping: 18 }}
         className={`panel-game relative overflow-visible ${kind === 'victory' ? 'theme-numbers' : 'theme-boss'}`}
       >
-        <div className={`rounded-t-[1.3rem] px-6 pt-8 pb-5 text-center ${kind === 'victory' ? 'bg-gradient-to-b from-[#fde68a] to-[#fff7ed]' : 'bg-gradient-to-b from-[#cbd5e1] to-[#f8fafc]'}`}>
+        <div
+          className={`rounded-t-[1.3rem] px-6 pt-8 pb-5 text-center ${kind === 'victory' ? 'bg-gradient-to-b from-[#fde68a] to-[#fff7ed]' : 'bg-gradient-to-b from-[#cbd5e1] to-[#f8fafc]'}`}
+        >
           <div className="pip-float absolute -top-12 left-1/2 size-24 -translate-x-1/2">
             <Pip mood={mood} className="size-full" />
           </div>

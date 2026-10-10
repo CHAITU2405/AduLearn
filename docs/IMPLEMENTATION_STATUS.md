@@ -4,6 +4,17 @@ Legend: ✅ complete and tested · 🟡 partial / prototype-level · ⏳ planned
 
 Last updated: 2026-10-10.
 
+## Game layer
+
+| Feature | Status | Notes |
+| --- | --- | --- |
+| Explorable painted overworld + 3 region maps | ✅ | Path walking (tap/keys), camera follow, Pip follower, progress-reactive overlays |
+| Game-style missions (VN story, stage, track, game inputs, feedback FX) | ✅ | Used by missions, practice, review and checks |
+| Boss battle arena | ✅ | Painted sprite for Gorm; vector art for the other three bosses (painted versions pending, see ASSETS.md) |
+| Stars, coins, ranks, fact scrolls, sound | ✅ | DB v3 wallet with migration |
+| Title screen | ✅ | Painted key art, save slots |
+| Backpack (wardrobe shop, badges, scrolls, journey) | ✅ | Try on before buying, fixed prices, confirm dialog, wear / take off; Settings editor only offers owned wardrobe items |
+
 ## Required screens
 
 | Screen | Status | Notes |
@@ -71,8 +82,8 @@ Last updated: 2026-10-10.
 | Offline install (PWA) | ⏳ | Works offline only once loaded |
 | Sync / accounts / multi-device | ⏳ | Storage layer is abstracted for future sync |
 | Mobile app | ⏳ | `src/core` and `src/content` are ready to reuse |
-| Unit/integration tests | ✅ | 161 tests |
-| Browser tests | ✅ | 7 Playwright tests (desktop + mobile) |
+| Unit/integration tests | ✅ | 175 tests |
+| Browser tests | ✅ | 8 Playwright tests (desktop + mobile) |
 
 ## Known constraints
 

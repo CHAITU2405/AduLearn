@@ -50,7 +50,7 @@ export const profileRepo = {
   /** Remove a profile and all of its learning records. */
   async remove(id: string) {
     const db = getDb()
-    await db.transaction('rw', [db.profiles, db.attempts, db.mastery, db.missionProgress, db.activeRuns, db.bossResults, db.assessments, db.rewards], async () => {
+    await db.transaction('rw', [db.profiles, db.attempts, db.mastery, db.missionProgress, db.activeRuns, db.bossResults, db.assessments, db.rewards, db.wallets], async () => {
       await Promise.all([
         db.attempts.where('profileId').equals(id).delete(),
         db.mastery.where('profileId').equals(id).delete(),
