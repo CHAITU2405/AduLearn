@@ -2,7 +2,8 @@ import { useEffect, useReducer, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronRight, FastForward, Lightbulb, Sparkles, Target } from 'lucide-react'
 import { usePrefs } from '@/app/context'
-import { AvatarFigure, CreatureFigure, type Mood } from '@/components/avatar/AvatarFigure'
+import type { Mood } from '@/components/avatar/AvatarFigure'
+import { CharacterSprite, paintedArt } from '@/components/story/CharacterSprite'
 import { cn } from '@/components/ui'
 import { getCharacter } from '@/content/characters'
 import type { AvatarConfig } from '@/core/avatar'
@@ -12,24 +13,19 @@ import { play } from '@/lib/sfx'
 import { dialogueVariation } from '@/services/ai/features'
 
 function Speaker({ speaker, avatar, mood, side }: { speaker: string; avatar: AvatarConfig; mood: Mood; side: 'left' | 'right' }) {
-  const ch = speaker === 'player' ? null : getCharacter(speaker)
+  const painted = !!paintedArt(speaker, avatar)
   return (
     <motion.div
       key={speaker}
       initial={{ x: side === 'left' ? -80 : 80, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       className={cn(
-        'pointer-events-none absolute bottom-full mb-[-12px] h-[200px] w-[150px] sm:h-[280px] sm:w-[200px]',
+        'pointer-events-none absolute bottom-full',
+        painted ? 'mb-[-6px] h-[230px] w-[190px] sm:h-[340px] sm:w-[280px]' : 'mb-[-12px] h-[200px] w-[150px] sm:h-[280px] sm:w-[200px]',
         side === 'left' ? 'left-2 sm:left-6' : 'right-2 sm:right-6',
       )}
     >
-      {speaker === 'player' ? (
-        <AvatarFigure config={avatar} mood={mood} className="size-full sprite-shadow" />
-      ) : ch?.creature ? (
-        <CreatureFigure art={ch.creature} className="size-full sprite-outline-lg" />
-      ) : ch?.look ? (
-        <AvatarFigure config={ch.look} mood={mood} className="size-full sprite-shadow" />
-      ) : null}
+      <CharacterSprite speaker={speaker} avatar={avatar} mood={mood} face={side === 'left' ? 'right' : 'left'} className="size-full" />
     </motion.div>
   )
 }

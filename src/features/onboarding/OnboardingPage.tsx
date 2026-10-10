@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router'
 import { ArrowLeft, ArrowRight, Map as MapIcon } from 'lucide-react'
 import { useProfile } from '@/app/context'
 import { AvatarEditor } from '@/components/avatar/AvatarEditor'
-import { AvatarFigure } from '@/components/avatar/AvatarFigure'
+import { HeroPicker } from '@/components/avatar/HeroPicker'
+import { CharacterSprite } from '@/components/story/CharacterSprite'
 import { StoryDialogue } from '@/components/story/StoryDialogue'
 import { Button, Card, cn, Notice } from '@/components/ui'
 import { ART } from '@/game/art'
@@ -11,7 +12,7 @@ import { SCENES } from '@/content'
 import { DEFAULT_AVATAR, nicknameSchema, type AvatarConfig } from '@/core/avatar'
 import { profileRepo } from '@/data/repositories'
 
-const STEP_LABELS = ['The adventure', 'Your avatar', 'Your nickname', 'Meet your guide']
+const STEP_LABELS = ['The adventure', 'Your hero', 'Your nickname', 'Meet your guide']
 
 export function OnboardingPage() {
   const [step, setStep] = useState(0)
@@ -86,9 +87,14 @@ export function OnboardingPage() {
 
         {step === 1 && (
           <Card className="p-6">
-            <h1 className="mb-1 text-3xl font-bold">Design your explorer</h1>
-            <p className="mb-6 text-ink-soft">Pick a look you like. You can change it later in Settings.</p>
-            <AvatarEditor value={avatar} onChange={setAvatar} />
+            <h1 className="mb-1 text-3xl font-bold">Choose your hero</h1>
+            <p className="mb-5 text-ink-soft">This is who you’ll be in the story. You can change it later in Settings.</p>
+            <HeroPicker value={avatar} onChange={setAvatar} />
+            <details className="mt-6 rounded-3xl border-2 border-line bg-paper/60 p-4" open>
+              <summary className="cursor-pointer font-display text-xl font-bold">Your explorer on the map</summary>
+              <p className="mt-1 mb-5 text-sm text-ink-soft">On the world map you walk around as a little explorer. Make it look how you like.</p>
+              <AvatarEditor value={avatar} onChange={(v) => setAvatar({ ...v, hero: avatar.hero })} />
+            </details>
             <div className="mt-8 flex justify-between gap-2">
               <Button variant="ghost" onClick={() => setStep(0)}>
                 <ArrowLeft className="size-5" aria-hidden /> Back
@@ -102,7 +108,7 @@ export function OnboardingPage() {
 
         {step === 2 && (
           <Card className="grid gap-6 p-6 md:grid-cols-[12rem_1fr] md:items-center">
-            <AvatarFigure config={avatar} className="mx-auto h-56 w-auto" title="Your avatar" />
+            <CharacterSprite speaker="player" avatar={avatar} face="right" className="mx-auto h-64 w-48" title="Your hero" />
             <form
               onSubmit={(e) => {
                 e.preventDefault()

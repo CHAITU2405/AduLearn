@@ -4,7 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { animate, motion } from 'framer-motion'
 import { ArrowLeft, BookOpen, Backpack, Coins, Map as MapIcon, Settings, Star, Volume2, VolumeX } from 'lucide-react'
 import { usePrefs } from '@/app/context'
-import { AvatarFigure } from '@/components/avatar/AvatarFigure'
+import { PortraitFill } from '@/components/story/CharacterSprite'
 import { cn } from '@/components/ui'
 import type { ProfileRecord } from '@/data/db'
 import { bossRepo, progressRepo, walletRepo } from '@/data/repositories'
@@ -64,7 +64,7 @@ export function GameHud({
             aria-label={`${profile.nickname}, ${rank.title}. Open backpack`}
           >
             <span className="size-10 overflow-hidden rounded-xl bg-brand-soft">
-              <AvatarFigure config={profile.avatar} variant="portrait" className="size-full" />
+              <PortraitFill speaker="player" avatar={profile.avatar} />
             </span>
             <span className="hidden min-w-0 leading-tight sm:block">
               <span className="block max-w-32 truncate font-display font-bold">{profile.nickname}</span>

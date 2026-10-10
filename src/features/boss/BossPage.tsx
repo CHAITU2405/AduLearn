@@ -3,7 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Dumbbell, Map as MapIcon, RotateCcw, Shield, Swords } from 'lucide-react'
 import { useRequiredProfile } from '@/app/context'
-import { AvatarFigure, CreatureFigure, type Mood } from '@/components/avatar/AvatarFigure'
+import { CreatureFigure, type Mood } from '@/components/avatar/AvatarFigure'
+import { CharacterSprite } from '@/components/story/CharacterSprite'
 import { ChallengePanel } from '@/components/game/challenge/ChallengePanel'
 import { HeartsBar } from '@/components/game/challenge/effects'
 import { GameHud } from '@/components/game/GameHud'
@@ -209,6 +210,8 @@ function BossFlow({ boss }: { boss: BossBlueprint }) {
               onNext={onNext}
               onResult={onResult}
               submitLabel="Cast answer!"
+              speaker={boss.characterId}
+              player={{ avatar: profile.avatar, name: profile.nickname }}
               nextLabel={state.status === 'active' ? 'Next round' : 'See result'}
               header={
                 <span className="inline-flex items-center gap-1 rounded-full bg-[#e0e7ff] px-3 py-1 text-xs font-bold text-[#3730a3]">
@@ -283,7 +286,7 @@ function Arena({
           className="absolute -bottom-3 left-1/2 h-6 w-36 -translate-x-1/2 rounded-[50%] bg-[#64748b] shadow-[0_6px_0_#334155,0_10px_20px_rgb(0_0_0/0.4)] sm:w-44"
           aria-hidden
         />
-        <AvatarFigure config={avatar} mood={myMood} className="relative size-full sprite-shadow" />
+        <CharacterSprite speaker="player" avatar={avatar} mood={myMood} face="right" className="relative size-full" />
       </motion.div>
       {/* Projectiles */}
       <AnimatePresence>

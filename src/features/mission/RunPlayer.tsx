@@ -3,6 +3,7 @@ import { ChallengePanel, type ChallengeTheme } from '@/components/game/challenge
 import { PipSays } from '@/components/game/Pip'
 import { Spinner } from '@/components/ui'
 import { conceptName } from '@/content'
+import type { AvatarConfig } from '@/core/avatar'
 import type { ConceptWeight, Difficulty, QuestionResponse } from '@/core/content/types'
 import type { RunRules, RunState } from '@/core/game/missionRun'
 import type { RewardRecord } from '@/data/db'
@@ -24,13 +25,16 @@ interface Props {
   onGoalMet?: (run: RunState) => Promise<RewardRecord[]>
   /** Lets the stage react to each graded answer. */
   onResult?: (result: Extract<SubmitResult, { status: 'graded' }>) => void
+  /** Character who talks the explorer through each challenge. */
+  speaker?: string
+  player?: { avatar: AvatarConfig; name: string }
 }
 
 /**
  * Plays an adaptive sequence of challenges for a run. Each question is chosen
  * by the adaptive engine; every answer is graded, recorded and applied.
  */
-export function RunPlayer({ profileId, run, rules, mix, difficultyRange, context, theme, onRunChange, onRunEnd, onGoalMet, onResult }: Props) {
+export function RunPlayer({ profileId, run, rules, mix, difficultyRange, context, theme, onRunChange, onRunEnd, onGoalMet, onResult, speaker, player }: Props) {
   const [prepared, setPrepared] = useState<PreparedQuestion | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -113,6 +117,8 @@ export function RunPlayer({ profileId, run, rules, mix, difficultyRange, context
         onSubmit={onSubmit}
         onNext={onNext}
         onResult={onResult}
+        speaker={speaker}
+        player={player}
         nextLabel={ended ? (run.status === 'complete' ? 'Finish mission' : 'Continue') : 'Next challenge'}
       />
     </div>

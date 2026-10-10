@@ -452,3 +452,38 @@ html[data-motion='reduce'] *::after {
 .sprite-shadow {
   filter: drop-shadow(0 6px 5px rgb(0 0 0 / 0.28));
 }
+
+/* Painted Pip moods */
+.pip-cheer {
+  animation: pip-cheer 0.9s ease-in-out infinite;
+}
+@keyframes pip-cheer {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  30% {
+    transform: translateY(-14%) rotate(-6deg);
+  }
+  60% {
+    transform: translateY(0) rotate(6deg);
+  }
+}
+.pip-bob {
+  animation: pip-bob 0.5s ease-in-out infinite alternate;
+}
+@keyframes pip-bob {
+  to {
+    transform: translateY(-5%) scale(1.03);
+  }
+}
+
+/* Conversation challenges */
+.chat-thread {
+  background-image: radial-gradient(rgb(0 0 0 / 0.035) 1.2px, transparent 1.2px);
+  background-size: 18px 18px;
+}
+.puzzle-tray {
+  border: 3px dashed color-mix(in srgb, var(--panel-edge, #a16207) 45%, transparent);
+  background: rgb(255 255 255 / 0.55);
+}

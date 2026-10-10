@@ -8,7 +8,7 @@ import { OutcomeCard } from '@/components/game/Outcome'
 import { PipSays } from '@/components/game/Pip'
 import { ProgressTrack, themeForSubject } from '@/components/game/Stage'
 import { Pill } from '@/components/ui'
-import { conceptName, getChapter, getMission } from '@/content'
+import { conceptName, getChapter, getMission, getRegion } from '@/content'
 import type { ConceptWeight, Difficulty } from '@/core/content/types'
 import { startRun, type RunState } from '@/core/game/missionRun'
 import { play } from '@/lib/sfx'
@@ -68,6 +68,8 @@ export function PracticePage() {
             onRunChange={setRun}
             onRunEnd={onRunEnd}
             onResult={onResult}
+            speaker={getRegion(chapter.regionId)?.characterId}
+            player={{ avatar: profile.avatar, name: profile.nickname }}
           />
         </div>
       ) : (

@@ -7,10 +7,11 @@ AduLearn turns school learning into a story-driven adventure game. Students crea
 ### The game layer
 
 - **Explorable maps** — a painted overworld (Isle of Learning) and three painted region maps. The avatar walks between places (tap/click, or arrow keys + Enter); Pip follows and talks. Places show locked / ready (“!”) / completed (stars). Locked places block the path. Scenery reacts to progress (storm clouds lift, flags rise, barriers open, sparkles appear).
-- **Missions as game scenes** — visual-novel story intro, characters either side of the challenge, a progress track (bridge planks, books, energy cells), answer stones (keys 1–4), a number keypad, drag-or-tap boards for matching / sentence building / diagram labelling, “Ask Pip” hints, coin bursts, breaking hearts, 1–3 star victory screens.
+- **Missions as conversations and puzzles** — visual-novel story intro, then every challenge is a conversation with the mission's character: they explain the situation and ask, you reply by choosing what to say, typing a reply, cracking a code lock (number keypad), or solving a puzzle (connect the pairs, unscramble a sentence, pin labels on a specimen). Multi-step problems unfold one step at a time. Pip chimes in with hints, and the character reacts to your answer and explains. Progress track (bridge planks, books, energy cells), coin bursts, breaking hearts, 1–3 star victory screens.
+- **Painted characters** — the story characters, Pip and four playable heroes (chosen during setup) are painted, story-game style sprites; see [`docs/ASSETS.md`](docs/ASSETS.md).
 - **Boss battles** — an arena with the boss's health bar; correct answers fire a knowledge bolt, wrong answers let the boss strike back.
 - **Economy and Backpack** — coins only for new correct answers (fewer with hints, a few for review, none for checks) and first-time scroll discoveries; stars per mission/boss; explorer ranks. The Backpack (HUD bag icon or Basecamp) has a **wardrobe shop** (try items on, fixed prices, confirm before buying, wear / take off — no randomness or loot boxes), **badges**, found **scrolls** with hints for the rest, and **journey** stars per region. Synthesized sound effects with a mute button.
-- **Art** — painted backgrounds and a boss sprite generated for the project (see [`docs/ASSETS.md`](docs/ASSETS.md)); avatars, NPCs, Pip and all interactive pieces are SVG so they stay customisable and animated.
+- **Art** — painted backgrounds, characters and a boss sprite generated for the project (see [`docs/ASSETS.md`](docs/ASSETS.md)); the map explorer and all interactive pieces are SVG so they stay customisable and animated.
 
 > **Content notice.** The bundled chapters are **illustrative samples** written for this prototype. They have **not** been checked against the official AP SSC Class 8 textbooks and are not a complete curriculum. Every question template carries review and curriculum-alignment metadata; teachers can approve or reject templates on the device.
 
@@ -20,7 +21,7 @@ AduLearn turns school learning into a story-driven adventure game. Students crea
 
 | Area | What works today |
 | --- | --- |
-| Onboarding | Welcome screen, 8-option avatar editor with live SVG preview, nickname (no real name needed), guide introduction, returning-explorer list |
+| Onboarding | Welcome screen, choice of four painted heroes plus an 8-option map-explorer editor with live preview, nickname (no real name needed), guide introduction, returning-explorer list |
 | Adventure world | Illustrated, clickable world map; three regions with locked / open / completed states; Science unlocks after any one mission |
 | Playable chapters | **Mathematics — Bridge of Balance** (4 missions, mini-boss, chapter boss), **English — The Lost Library** (3 missions, boss), **Science — Field Station Alpha** (biology, chemistry and physics missions, boss) — each with diagnostic and follow-up checks |
 | Question engine | 37 deterministic, seeded templates; 7 question types (multiple choice, numeric, text/fill-in/sentence correction, matching, word-order sentence building, diagram labelling, multi-step); every instance is validated before use; variant history avoids repeats |

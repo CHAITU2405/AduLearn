@@ -1,7 +1,7 @@
 import { NavLink, Outlet, Link, useLocation } from 'react-router'
 import { BarChart3, Home, Map, RotateCcw, Settings } from 'lucide-react'
 import { Suspense, useEffect } from 'react'
-import { AvatarFigure } from '@/components/avatar/AvatarFigure'
+import { PortraitFill } from '@/components/story/CharacterSprite'
 import { Logo } from '@/components/brand/Logo'
 import { cn, Spinner } from '@/components/ui'
 import { useProfile } from './context'
@@ -53,7 +53,7 @@ export function AppShell() {
                 className="ml-1 inline-flex items-center gap-2 rounded-full border-2 border-line bg-white py-0.5 pl-0.5 pr-0.5 hover:border-brand sm:pr-3"
               >
                 <span className="size-9 overflow-hidden rounded-full bg-brand-soft">
-                  <AvatarFigure config={profile.avatar} variant="portrait" className="size-full" />
+                  <PortraitFill speaker="player" avatar={profile.avatar} />
                 </span>
                 <span className="hidden max-w-28 truncate font-bold sm:inline">{profile.nickname}</span>
                 <Settings className="hidden size-4 text-ink-muted sm:inline" aria-hidden />

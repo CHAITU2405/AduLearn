@@ -1,11 +1,51 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import type { ReactNode } from 'react'
 import { cn } from '@/components/ui'
+import { CHARACTER_ART } from '@/game/art'
 
 export type PipMood = 'idle' | 'happy' | 'cheer' | 'sad' | 'thinking' | 'talking'
 
 /** Pip the Spark — the explorer's companion mascot. */
 export function Pip({ mood = 'idle', className, title = 'Pip' }: { mood?: PipMood; className?: string; title?: string }) {
+  if (CHARACTER_ART.pip) return <PaintedPip art={CHARACTER_ART.pip} mood={mood} className={className} title={title} />
+  return <DrawnPip mood={mood} className={className} title={title} />
+}
+
+/** Painted Pip: one pose, with the mood shown through motion and small effects. */
+function PaintedPip({ art, mood, className, title }: { art: string; mood: PipMood; className?: string; title: string }) {
+  return (
+    <span className={cn('relative inline-block', className)} role={title ? 'img' : undefined} aria-label={title || undefined} aria-hidden={title ? undefined : true}>
+      <img
+        src={art}
+        alt=""
+        draggable={false}
+        className={cn(
+          'size-full object-contain select-none',
+          mood === 'cheer' && 'pip-cheer',
+          mood === 'sad' && 'translate-y-[6%] -rotate-12 saturate-[0.55]',
+          mood === 'thinking' && 'rotate-6',
+          mood === 'talking' && 'pip-bob',
+        )}
+      />
+      {mood === 'thinking' && (
+        <span className="absolute -top-[8%] -right-[8%] grid size-[38%] place-items-center rounded-full border-2 border-[#d97706] bg-white text-[0.6em] leading-none font-black text-[#d97706]">
+          ?
+        </span>
+      )}
+      {mood === 'sad' && <span className="absolute top-[38%] right-[22%] size-[10%] rounded-full rounded-tl-none bg-[#7dd3fc] opacity-90" />}
+      {mood === 'cheer' && (
+        <svg viewBox="0 0 120 120" className="pointer-events-none absolute inset-0 size-full overflow-visible" aria-hidden>
+          <g fill="#facc15" className="twinkle">
+            <path d="M8 14 l3 7 7 1 -5 5 1 7 -6 -3 -6 3 1 -7 -5 -5 7 -1z" />
+            <path d="M104 10 l2 5 5 .6 -4 3.4 1 5 -4 -2.3 -4 2.3 1 -5 -4 -3.4 5 -.6z" />
+          </g>
+        </svg>
+      )}
+    </span>
+  )
+}
+
+function DrawnPip({ mood, className, title }: { mood: PipMood; className?: string; title: string }) {
   const ink = '#3b1d0a'
   const eyes =
     mood === 'cheer' ? (

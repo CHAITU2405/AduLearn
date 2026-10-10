@@ -3,7 +3,8 @@
  * Usage: build with `npx vite build --mode e2e --outDir dist-e2e`, serve it with
  * `npx vite preview --outDir dist-e2e --port 4175`, then:
  *   node scripts/screenshots.mjs <outDir> [baseUrl] [width] [height]
- * Uses the installed Edge (PW_CHANNEL) because some systems block bundled Chromium.
+ * Uses the installed Edge (PW_CHANNEL) because some systems block bundled Chromium;
+ * set PW_EXECUTABLE to a browser binary to use that instead.
  */
 import { chromium } from '@playwright/test'
 
@@ -11,7 +12,9 @@ const out = process.argv[2] ?? 'screenshots'
 const base = process.argv[3] ?? 'http://localhost:4175'
 const width = Number(process.argv[4] ?? 1366)
 const height = Number(process.argv[5] ?? 800)
-const browser = await chromium.launch({ channel: process.env.PW_CHANNEL ?? 'msedge' })
+const browser = await chromium.launch(
+  process.env.PW_EXECUTABLE ? { executablePath: process.env.PW_EXECUTABLE } : { channel: process.env.PW_CHANNEL ?? 'msedge' },
+)
 const page = await browser.newPage({ viewport: { width, height } })
 const shot = async (n) => {
   await page.waitForTimeout(700)
@@ -68,7 +71,7 @@ const first = await answer(false)
 await shot('08-mission-answered')
 await page
   .locator(`[data-instance-id="${first.id}"]`)
-  .getByRole('button', { name: /check|cast/i })
+  .locator('button[data-submit]')
   .click()
 await shot('09-mission-wrong')
 await page
@@ -79,7 +82,7 @@ await page
 const second = await answer(true)
 await page
   .locator(`[data-instance-id="${second.id}"]`)
-  .getByRole('button', { name: /check|cast/i })
+  .locator('button[data-submit]')
   .click()
 await page.waitForTimeout(300)
 await shot('10-mission-correct')
@@ -102,7 +105,7 @@ async function finishMission(id) {
     if (await done.isVisible()) break
     const a = await answer(true)
     const c = page.locator(`[data-instance-id="${a.id}"]`)
-    await c.getByRole('button', { name: /check|cast/i }).click()
+    await c.locator('button[data-submit]').click()
     await c
       .getByRole('button', { name: /next|finish|continue/i })
       .last()
@@ -120,7 +123,7 @@ await shot('16-boss-arena')
 const b = await answer(true)
 await page
   .locator(`[data-instance-id="${b.id}"]`)
-  .getByRole('button', { name: /check|cast/i })
+  .locator('button[data-submit]')
   .click()
 await page.waitForTimeout(150)
 await page.screenshot({ path: `${out}/17-boss-hit.png` })

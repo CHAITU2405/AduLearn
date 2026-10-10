@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router'
 import { motion } from 'framer-motion'
 import { Info, Play, Sparkles, UserRoundCog, Users } from 'lucide-react'
 import { useProfile } from '@/app/context'
-import { AvatarFigure } from '@/components/avatar/AvatarFigure'
+import { PortraitFill } from '@/components/story/CharacterSprite'
 import { Logo } from '@/components/brand/Logo'
 import { PipSays } from '@/components/game/Pip'
 import { useProfiles } from '@/data/hooks'
@@ -59,7 +59,7 @@ export function WelcomePage() {
                     className="group flex w-full items-center gap-3 rounded-3xl border-4 border-white bg-white/95 p-2 pr-4 text-left shadow-lift transition-transform hover:-translate-y-1"
                   >
                     <span className="size-16 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-b from-brand-soft to-white">
-                      <AvatarFigure config={p.avatar} variant="portrait" className="size-full" />
+                      <PortraitFill speaker="player" avatar={p.avatar} />
                     </span>
                     <span className="min-w-0">
                       <span className="block truncate font-display text-xl font-bold">{p.nickname}</span>

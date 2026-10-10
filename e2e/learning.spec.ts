@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { answerAndContinue, answerCurrent, createExplorer, skipStory, trackErrors } from './helpers'
+import { answerAndContinue, answerCurrent, createExplorer, nextChallengeOrOutro, skipStory, trackErrors } from './helpers'
 
 test('running out of hearts offers targeted practice and a retry with different questions', async ({ page }) => {
   const errors = trackErrors(page)
@@ -65,7 +65,7 @@ test('science diagram labelling and labs work', async ({ page }) => {
   await page.goto('/mission/eng-m1')
   await skipStory(page)
   for (let i = 0; i < 12; i++) {
-    if (await page.getByRole('button', { name: /skip story/i }).isVisible()) break
+    if (await nextChallengeOrOutro(page)) break
     await answerAndContinue(page, true)
   }
   await page.goto('/mission/sci-m3')
@@ -80,7 +80,7 @@ test('science diagram labelling and labs work', async ({ page }) => {
   await skipStory(page)
   // Answer until a labelling question appears (or a few questions pass).
   for (let i = 0; i < 6; i++) {
-    if (await page.getByRole('img', { name: /Diagram of a plant cell/ }).isVisible()) break
+    if ((await nextChallengeOrOutro(page)) || (await page.getByRole('img', { name: /Diagram of a plant cell/ }).isVisible())) break
     await answerAndContinue(page, true)
   }
 })
