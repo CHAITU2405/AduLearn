@@ -45,6 +45,29 @@ async function fillPart(scope: Locator, part: PartResponse, correct: boolean) {
   }
 }
 
+/**
+ * Hands-on labs: do the experiment first, the way a student would (each step has a
+ * tap alternative marked data-lab-action; some only unlock after the previous one).
+ */
+async function runLabSteps(card: Locator) {
+  if (!(await card.locator('[data-lab]').count())) return
+  let idle = 0
+  for (let i = 0; i < 20 && idle < 6; i++) {
+    const action = card.locator('[data-lab-action]:not([disabled])')
+    if (await action.count()) {
+      idle = 0
+      // A step can lock itself just as it is clicked; never wait on it.
+      await action
+        .first()
+        .click({ timeout: 2000 })
+        .catch(() => undefined)
+    } else {
+      idle++
+      await card.page().waitForTimeout(300)
+    }
+  }
+}
+
 /** Answer the question currently on screen, correctly or incorrectly, through the real UI. */
 export async function answerCurrent(page: Page, correct = true) {
   const card = page.locator('[data-instance-id]:not([data-graded])').last()
@@ -52,6 +75,7 @@ export async function answerCurrent(page: Page, correct = true) {
   const id = (await card.getAttribute('data-instance-id'))!
   const response = await page.evaluate((i) => window.__adulearnTest.correctResponse(i), id)
   if (!response) throw new Error('No active answer key for this question')
+  await runLabSteps(card)
   switch (response.kind) {
     case 'mcq':
     case 'numeric':

@@ -93,7 +93,49 @@ export interface QuestionView {
   prompt: string
   passage?: { title: string; text: string }
   body: QuestionBody
+  /** Optional hands-on experiment the student performs to find (and give) the answer. */
+  lab?: LabView
 }
+
+// ---------------------------------------------------------------------------
+// Hands-on labs. A lab describes what the student can do and what they will
+// observe; the answer is still given through the question body and graded by
+// its key. Observations are evidence, never the answer label itself.
+// ---------------------------------------------------------------------------
+
+export type LabTool = 'hammer' | 'tester' | 'polish' | 'wire' | 'strike'
+export type LabEffect = 'flatten' | 'shatter' | 'squash' | 'none' | 'glow' | 'dark' | 'shine' | 'dull' | 'wire' | 'snap' | 'ring' | 'thud'
+
+export interface LabTestView {
+  tool: LabTool
+  effect: LabEffect
+  /** What the student sees, e.g. "It flattens into a thin sheet." */
+  note: string
+}
+
+export type LabView =
+  /** Test a sample with tools, then drop it on the shelf (an mcq choice) it belongs to. */
+  | { kind: 'sample-test'; sample: { name: string; symbol?: string; form: 'solid' | 'powder' | 'gas' | 'soft' }; tests: LabTestView[] }
+  /** Burn an element, dissolve the oxide, predict, then dip litmus (revealed after checking). */
+  | {
+      kind: 'oxide'
+      element: string
+      oxide: string
+      product: 'ash' | 'gas'
+      flame: string
+      burnNote: string
+      litmus: 'red' | 'blue'
+      litmusAfter: 'red' | 'blue'
+    }
+  /** Bring one object towards another and see when the force starts to act; then sort the force. */
+  | { kind: 'force-push'; actor: { icon: string; name: string }; target: { icon: string; name: string }; contact: boolean; reaction: string }
+  /** Measure force and area with tools, then set the pressure gauge (numeric answer). */
+  | { kind: 'pressure-measure'; object: string; force: number; area: number }
+  /** Sand pit: try base plates (area mode) or load weights (force mode); the setting is the answer. */
+  | { kind: 'pressure-sand'; mode: 'area'; force: number; maxPressure: number; plates: number[] }
+  | { kind: 'pressure-sand'; mode: 'force'; area: number; maxPressure: number }
+  /** Free exploration: stand a brick on different faces and compare how far it sinks. */
+  | { kind: 'pressure-demo'; weight: number; faces: { name: string; area: number }[] }
 
 // ---------------------------------------------------------------------------
 // Responses

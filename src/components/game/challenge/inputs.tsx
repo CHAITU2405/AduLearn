@@ -9,7 +9,7 @@ import { play } from '@/lib/sfx'
 // Drag-or-tap chips (pointer drag with a tap fallback for keyboard and touch)
 // ---------------------------------------------------------------------------
 
-function useDragChip(id: string, onTap: () => void, onDrop: (target: string) => void, disabled?: boolean) {
+export function useDragChip(id: string, onTap: () => void, onDrop: (target: string) => void, disabled?: boolean) {
   const [ghost, setGhost] = useState<{ x: number; y: number } | null>(null)
   const start = useRef<{ x: number; y: number } | null>(null)
   const dragging = useRef(false)
@@ -20,7 +20,7 @@ function useDragChip(id: string, onTap: () => void, onDrop: (target: string) => 
         if (disabled || e.button !== 0) return
         start.current = { x: e.clientX, y: e.clientY }
         dragging.current = false
-        ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+        ;(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId)
       },
       onPointerMove: (e: React.PointerEvent) => {
         if (!start.current) return
@@ -53,7 +53,7 @@ function useDragChip(id: string, onTap: () => void, onDrop: (target: string) => 
   }
 }
 
-function Ghost({ pos, children }: { pos: { x: number; y: number } | null; children: ReactNode }) {
+export function Ghost({ pos, children }: { pos: { x: number; y: number } | null; children: ReactNode }) {
   if (!pos) return null
   return (
     <div className="pointer-events-none fixed z-[60] -translate-x-1/2 -translate-y-1/2 rotate-3 opacity-90" style={{ left: pos.x, top: pos.y }}>

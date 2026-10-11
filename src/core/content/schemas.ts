@@ -38,6 +38,10 @@ export const questionViewSchema = z.object({
     }),
     z.object({ kind: z.literal('multi'), parts: z.array(partView).min(2).max(4) }),
   ]),
+  lab: z
+    .object({ kind: z.enum(['sample-test', 'oxide', 'force-push', 'pressure-measure', 'pressure-sand', 'pressure-demo']) })
+    .passthrough()
+    .optional(),
 })
 
 const misconception = z.object({ misconceptionId: nonEmpty, feedback: nonEmpty })
@@ -193,5 +197,27 @@ export function validateInstance(view: QuestionView, key: AnswerKey, hints: stri
   if (errors.length) return errors
   if (hints.length === 0) errors.push('at least one hint is required')
   errors.push(...checkBody(view.body, key.body))
+  if (view.lab) errors.push(...checkLab(view, key))
   return errors
+}
+
+/** A lab must fit the way its question is answered. */
+function checkLab(view: QuestionView, key: AnswerKey): string[] {
+  const lab = view.lab!
+  const kind = view.body.kind
+  const needs: Record<string, string[]> = {
+    'sample-test': ['mcq'],
+    'force-push': ['mcq'],
+    'pressure-demo': ['mcq'],
+    oxide: ['mcq', 'multi'],
+    'pressure-measure': ['numeric'],
+    'pressure-sand': ['numeric'],
+  }
+  if (!needs[lab.kind].includes(kind)) return [`lab ${lab.kind} cannot be used with a ${kind} question`]
+  if (lab.kind === 'sample-test' && lab.tests.length === 0) return ['sample-test lab needs at least one test']
+  if (lab.kind === 'pressure-sand' && lab.mode === 'area' && key.body.kind === 'numeric') {
+    const answer = key.body.value
+    if (!lab.plates.some((p) => Math.abs(p - answer) < 1e-9)) return ['pressure-sand lab must offer the correct plate']
+  }
+  return []
 }

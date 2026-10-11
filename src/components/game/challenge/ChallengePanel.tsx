@@ -17,6 +17,7 @@ import { alternativeExplanation, contextualHint } from '@/services/ai/features'
 import { vault, type SubmitResult } from '@/services/learning'
 import { CoinBurst } from './effects'
 import { NumberPad, PlankInput, ReplyChoices, SocketBoard, WordBuilder } from './inputs'
+import { LabBench, labAnswerMode, labSubmitLabel } from './labs'
 
 export type ChallengeTheme = 'numbers' | 'words' | 'discovery' | 'boss'
 type Graded = Extract<SubmitResult, { status: 'graded' }>
@@ -91,6 +92,7 @@ export function ChallengePanel(props: ChallengePanelProps) {
 
   const reduce = prefs.motion === 'reduce' || (prefs.motion === 'system' && typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches)
   const [stepsShown, setStepsShown] = useState(1)
+  const [labReady, setLabReady] = useState(false)
   const complete = isResponseComplete(response, expectedCounts(q.view))
   const maxHints = hintAllowance === 'none' ? 0 : hintAllowance === 'unlimited' ? q.hints.length : Math.min(q.hints.length, hintAllowance)
   const aiReady = prefs.ai.enabled && !!prefs.ai.model
@@ -196,6 +198,8 @@ export function ChallengePanel(props: ChallengePanelProps) {
   const speaker = props.speaker ?? 'pip'
   const speakerName = speaker === 'pip' ? 'Pip' : getCharacter(speaker).name
   const puzzle = PUZZLE[b.kind]
+  const lab = q.view.lab
+  const labMode = lab ? labAnswerMode(lab) : null
   const verdict = g ? (g.correct ? 'correct' : 'incorrect') : undefined
 
   // Multi-step challenges unfold like a conversation: the next step is asked once the current one has an answer.
@@ -239,7 +243,7 @@ export function ChallengePanel(props: ChallengePanelProps) {
           placeholder={part.placeholder}
           onEnter={() => void submit()}
           labelledBy={labelledBy}
-          lock={b.kind === 'numeric' ? (g ? (g.correct ? 'open' : 'jammed') : 'locked') : undefined}
+          lock={b.kind === 'numeric' && !lab ? (g ? (g.correct ? 'open' : 'jammed') : 'locked') : undefined}
         />
       )
     if (part.kind === 'text' && value.kind === 'text')
@@ -332,7 +336,7 @@ export function ChallengePanel(props: ChallengePanelProps) {
               { grouped: true },
             )}
 
-          {b.kind === 'multi' && response.kind === 'multi' ? (
+          {b.kind === 'multi' && response.kind === 'multi' && !lab ? (
             <>
               {npcLine('prompt', <span className="font-display text-xl leading-snug sm:text-2xl">{q.view.prompt}</span>, { id: promptId })}
               <ol className="flex flex-col gap-3">
@@ -365,8 +369,51 @@ export function ChallengePanel(props: ChallengePanelProps) {
             npcLine('prompt', <span className="font-display text-xl leading-snug sm:text-2xl">{promptText}</span>, { id: promptId })
           )}
 
+          {/* A hands-on experiment: the student finds (and often gives) the answer by doing it */}
+          {lab && (
+            <motion.div initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: nextDelay() }} className="flex flex-col gap-3">
+              <LabBench
+                lab={lab}
+                mcq={labMode === 'bins' && b.kind === 'mcq' ? b : undefined}
+                choiceId={response.kind === 'mcq' ? response.choiceId : null}
+                onChoose={(id) => setResponse({ kind: 'mcq', choiceId: id })}
+                value={response.kind === 'numeric' ? response.value : ''}
+                onValue={(v) => setResponse({ kind: 'numeric', value: v })}
+                unit={b.kind === 'numeric' ? b.unit : undefined}
+                disabled={disabled}
+                verdict={verdict}
+                onReady={setLabReady}
+                labelledBy={promptId}
+              />
+              {labMode === 'notebook' && (
+                <div className="rounded-3xl border-[3px] border-[#fcd34d] bg-[#fffbeb] p-3 sm:p-4">
+                  <p className="mb-2 flex items-center gap-2 text-sm font-bold tracking-wide text-[#a16207] uppercase">
+                    <BookOpen className="size-4" aria-hidden /> Lab notebook
+                  </p>
+                  {!labReady ? (
+                    <p className="text-sm font-semibold text-ink-muted">Finish the experiment above, then write your answer here.</p>
+                  ) : b.kind === 'multi' && response.kind === 'multi' ? (
+                    <ol className="flex flex-col gap-4">
+                      {b.parts.map((part, i) => (
+                        <li key={i} data-part-index={i} className="flex flex-col gap-2">
+                          <p id={`${promptId}-p${i}`} className="flex items-start gap-2 font-display text-lg font-bold">
+                            <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-ink text-sm text-white">{i + 1}</span>
+                            {part.prompt ?? `Step ${i + 1}`}
+                          </p>
+                          {renderPart(part, response.parts[i], (v) => setResponse({ kind: 'multi', parts: response.parts.map((x, j) => (j === i ? v : x)) }), `${promptId}-p${i}`)}
+                        </li>
+                      ))}
+                    </ol>
+                  ) : (
+                    (b.kind === 'mcq' || b.kind === 'numeric' || b.kind === 'text') && renderPart(b, response as PartResponse, setResponse, promptId)
+                  )}
+                </div>
+              )}
+            </motion.div>
+          )}
+
           {/* Your move: a reply or a puzzle */}
-          {b.kind !== 'multi' && !inlineFill && (
+          {!lab && b.kind !== 'multi' && !inlineFill && (
             <motion.div
               initial={reduce ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -467,13 +514,23 @@ export function ChallengePanel(props: ChallengePanelProps) {
                 )}
                 disabled={!complete || submitting}
               >
-                {submitting ? 'Checking…' : (props.submitLabel ?? puzzle.submit)}
+                {submitting ? 'Checking…' : (props.submitLabel ?? (lab ? labSubmitLabel(lab) : puzzle.submit))}
               </button>
             </div>
           )}
           {!result && !complete && (
             <p className="-mt-1 text-right text-xs text-ink-muted">
-              {b.kind === 'mcq' ? 'Pick your reply (or press 1–4).' : b.kind === 'multi' ? 'Answer each step to keep the conversation going.' : 'Finish the puzzle to check it.'}
+              {lab
+                ? labMode === 'bins'
+                  ? 'Experiment, then sort it onto a shelf.'
+                  : labMode === 'instrument'
+                    ? 'Experiment until you find the answer.'
+                    : 'Do the experiment, then fill in your notebook.'
+                : b.kind === 'mcq'
+                  ? 'Pick your reply (or press 1–4).'
+                  : b.kind === 'multi'
+                    ? 'Answer each step to keep the conversation going.'
+                    : 'Finish the puzzle to check it.'}
             </p>
           )}
         </form>
