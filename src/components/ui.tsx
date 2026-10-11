@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useId, useRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
+import { forwardRef, useEffect, useId, useRef, type ButtonHTMLAttributes, type HTMLAttributes, type ReactNode } from 'react'
 import { Link, type LinkProps } from 'react-router'
 import { CheckCircle2, Circle, Heart, Info, Lock, TriangleAlert, X } from 'lucide-react'
 import type { NodeState } from '@/core/game/progression'
@@ -41,8 +41,17 @@ export function LinkButton({ variant = 'primary', size = 'md', className, ...res
   return <Link className={buttonClass(variant, size, className)} {...rest} />
 }
 
-export function Card({ className, children, as: Tag = 'div' }: { className?: string; children: ReactNode; as?: 'div' | 'section' | 'article' | 'li' }) {
-  return <Tag className={cn('rounded-[var(--radius-card)] bg-card shadow-soft border border-line/70', className)}>{children}</Tag>
+export function Card({
+  className,
+  children,
+  as: Tag = 'div',
+  ...rest
+}: { className?: string; children: ReactNode; as?: 'div' | 'section' | 'article' | 'li' } & Omit<HTMLAttributes<HTMLElement>, 'className' | 'children'>) {
+  return (
+    <Tag {...rest} className={cn('rounded-[var(--radius-card)] bg-card shadow-soft border border-line/70', className)}>
+      {children}
+    </Tag>
+  )
 }
 
 export function Pill({

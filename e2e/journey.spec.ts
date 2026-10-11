@@ -104,6 +104,8 @@ test('main student journey: avatar → world map → diagnostic → missions →
   await page.getByLabel('PIN', { exact: true }).fill('2468')
   await page.getByLabel('Confirm PIN').fill('2468')
   await page.getByRole('button', { name: /set pin and open/i }).click()
+  await expect(page.locator('tr', { hasText: 'E2E Explorer' }).first()).toBeVisible()
+  await page.getByRole('tab', { name: 'Explorers' }).click()
   const row = page.locator('tr', { has: page.getByText('E2E Explorer') })
   await expect(row).toBeVisible()
   await expect(row.getByText('6/6 stages')).toBeVisible()

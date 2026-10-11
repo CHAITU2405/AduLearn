@@ -31,6 +31,8 @@ AduLearn turns school learning into a story-driven adventure game. Students crea
 | Game mechanics | Hearts per mission, refresh-proof (resuming keeps hearts), out-of-hearts screen with targeted practice and retry using new variants, milestone rewards (no streaks or loot boxes) |
 | Bosses | Generated from blueprints (required concepts, difficulty, types, pass rules, hint limits); multi-step problems; failure leads to targeted practice and a different challenge |
 | Assessments | Optional starting check and follow-up check (unlocked after the chapter boss) with different questions; transparent per-concept comparison with stated limitations |
+| Teacher dashboard | Opens on a class dashboard: stat tiles, a leaderboard (stars, accuracy, coins, assignment average), answers per day, accuracy by subject and per-question assignment results. Twelve clearly labelled **sample students** can be switched on or off for demonstrations |
+| Assignments | Teachers create, edit, duplicate, publish/unpublish and delete tests and quizzes (multiple choice, short answer, number with tolerance and unit), with attempt limits, an optional due date and an option to show answers afterwards; students attempt and re-attempt them from *Assignments* (best score counts, late submissions are marked); teachers see every student's scores |
 | Teacher view | Local PIN gate; overview of explorers on the device, concepts that may need reteaching, repeated error patterns; per-student detail with mastery evidence, attempts, bosses and check comparisons; printable report; per-student JSON export; content review (approve / pending / reject) with live previews |
 | Data | IndexedDB (Dexie) with versioned schema and migration; JSON export/import with validation; confirmed destructive actions; dev-only demo data |
 | Optional AI | Ollama integration for alternative explanations, extra hints and dialogue rephrasing — schema-validated, safety-filtered, answer-leak checked, cached, with timeouts and fallback to approved content |
@@ -90,7 +92,7 @@ PW_CHANNEL=msedge npm run test:e2e     # or PW_CHANNEL=chrome
 
 ## Local data: how it is stored and its limits
 
-- Structured data (profiles, attempts, variant history, mastery, mission progress, active runs, boss results, assessments, rewards, content-review decisions, teacher PIN hash, AI cache) lives in **IndexedDB** via Dexie (`src/data/db.ts`). The schema is versioned (currently v2) with an upgrade step.
+- Structured data (profiles, attempts, variant history, mastery, mission progress, active runs, boss results, assessments, rewards, content-review decisions, assignments and assignment attempts, teacher PIN hash, AI cache) lives in **IndexedDB** via Dexie (`src/data/db.ts`). The schema is versioned (currently v4) with upgrade steps.
 - Small per-device preferences (motion, text size, “why this question” toggle, Ollama endpoint/model) live in `localStorage` (`src/lib/prefs.ts`). Storage failures fall back to defaults.
 - Only pseudonymous data is stored: a random profile id, a nickname, an avatar and learning records. No real name, email, phone number or location.
 
@@ -99,6 +101,7 @@ PW_CHANNEL=msedge npm run test:e2e     # or PW_CHANNEL=chrome
 - Data belongs to **this browser profile on this device**. It does not follow the student to another device.
 - **Clearing browser data** or using a private window can remove it.
 - Browser storage is **not a secure backup**. Use *Settings → Export progress* and keep the file safe; *Import* never overwrites explorers that already exist.
+- Assignments and the dashboard only see explorers **in this browser**. A whole class needs to share one device/browser profile until a server is added. Assignments are not included in the JSON export.
 - The teacher PIN only discourages casual access. Anyone with full access to the device can read or erase local data.
 - Because grading runs in the browser, answer keys cannot be truly secret: they are kept out of question payloads and UI state (see `AnswerVault`), but a determined user with developer tools could find them.
 

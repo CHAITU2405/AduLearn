@@ -90,6 +90,8 @@ test('teacher can reject content, and the PIN is required', async ({ page }) => 
   await page.getByLabel('PIN', { exact: true }).fill('1357')
   await page.getByLabel('Confirm PIN').fill('1357')
   await page.getByRole('button', { name: /set pin and open/i }).click()
+  await expect(page.getByRole('heading', { name: 'Leaderboard' })).toBeVisible()
+  await page.getByRole('tab', { name: 'Explorers' }).click()
   await expect(page.getByText('No explorers on this device yet')).toBeVisible()
   await page.getByRole('tab', { name: /content review/i }).click()
   await page.getByLabel('Set status for One-step equation: x + a = b').selectOption('rejected')

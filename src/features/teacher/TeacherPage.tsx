@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react'
-import { ClipboardList, KeyRound, LayoutDashboard, Lock, ShieldCheck, UserRound } from 'lucide-react'
+import { BookCheck, ClipboardList, Gauge, KeyRound, LayoutDashboard, Lock, ShieldCheck, UserRound } from 'lucide-react'
 import { Button, Card, cn, Notice, PageHeader, Spinner } from '@/components/ui'
+import { Assignments } from './Assignments'
 import { ContentReview } from './ContentReview'
+import { Dashboard } from './Dashboard'
 import { Overview } from './Overview'
 import { checkPin, hasPin, rememberUnlocked, setPin, validPin, wasUnlocked } from './pin'
 import { StudentDetail } from './StudentDetail'
 
-type Tab = 'overview' | 'student' | 'content'
+type Tab = 'dashboard' | 'assignments' | 'overview' | 'student' | 'content'
 
 export function TeacherPage() {
   const [pinExists, setPinExists] = useState<boolean | null>(null)
   const [unlocked, setUnlocked] = useState(wasUnlocked())
-  const [tab, setTab] = useState<Tab>('overview')
+  const [tab, setTab] = useState<Tab>('dashboard')
   const [studentId, setStudentId] = useState<string | null>(null)
   useEffect(() => {
     void hasPin().then(setPinExists)
@@ -30,7 +32,9 @@ export function TeacherPage() {
     )
 
   const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
-    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'dashboard', label: 'Dashboard', icon: Gauge },
+    { id: 'assignments', label: 'Assignments', icon: BookCheck },
+    { id: 'overview', label: 'Explorers', icon: LayoutDashboard },
     { id: 'student', label: 'Student detail', icon: UserRound },
     { id: 'content', label: 'Content review', icon: ClipboardList },
   ]
@@ -39,7 +43,7 @@ export function TeacherPage() {
       <div className="no-print">
         <PageHeader
           eyebrow="Teacher view (this device)"
-          title="Learning records"
+          title="Teacher dashboard"
           actions={
             <Button
               variant="ghost"
@@ -53,7 +57,7 @@ export function TeacherPage() {
             </Button>
           }
         >
-          Records from explorers who have played in this browser. This is a local prototype view, not a multi-school system.
+          Scores, a leaderboard and assignments for the explorers who play in this browser. Only someone with the teacher PIN can open this view.
         </PageHeader>
         <div role="tablist" aria-label="Teacher sections" className="mb-6 flex flex-wrap gap-2">
           {tabs.map((t) => (
@@ -73,6 +77,8 @@ export function TeacherPage() {
         </div>
       </div>
       <div role="tabpanel">
+        {tab === 'dashboard' && <Dashboard onOpenAssignments={() => setTab('assignments')} />}
+        {tab === 'assignments' && <Assignments />}
         {tab === 'overview' && (
           <Overview
             onOpenStudent={(id) => {

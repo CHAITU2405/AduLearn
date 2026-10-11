@@ -3,6 +3,7 @@
  * instead of touching Dexie tables directly, so storage can later be swapped
  * or synchronised with a backend without rewriting game components.
  */
+import type { Assignment, AssignmentAttempt } from '@/core/assignments'
 import type { AvatarConfig } from '@/core/avatar'
 import type { ReviewStatus } from '@/core/content/types'
 import type { ProgressSnapshot } from '@/core/game/progression'
@@ -50,19 +51,24 @@ export const profileRepo = {
   /** Remove a profile and all of its learning records. */
   async remove(id: string) {
     const db = getDb()
-    await db.transaction('rw', [db.profiles, db.attempts, db.mastery, db.missionProgress, db.activeRuns, db.bossResults, db.assessments, db.rewards, db.wallets], async () => {
-      await Promise.all([
-        db.attempts.where('profileId').equals(id).delete(),
-        db.mastery.where('profileId').equals(id).delete(),
-        db.missionProgress.where('profileId').equals(id).delete(),
-        db.activeRuns.where('profileId').equals(id).delete(),
-        db.bossResults.where('profileId').equals(id).delete(),
-        db.assessments.where('profileId').equals(id).delete(),
-        db.rewards.where('profileId').equals(id).delete(),
-        db.wallets.delete(id),
-        db.profiles.delete(id),
-      ])
-    })
+    await db.transaction(
+      'rw',
+      [db.profiles, db.attempts, db.mastery, db.missionProgress, db.activeRuns, db.bossResults, db.assessments, db.rewards, db.wallets, db.assignmentAttempts],
+      async () => {
+        await Promise.all([
+          db.assignmentAttempts.where('profileId').equals(id).delete(),
+          db.attempts.where('profileId').equals(id).delete(),
+          db.mastery.where('profileId').equals(id).delete(),
+          db.missionProgress.where('profileId').equals(id).delete(),
+          db.activeRuns.where('profileId').equals(id).delete(),
+          db.bossResults.where('profileId').equals(id).delete(),
+          db.assessments.where('profileId').equals(id).delete(),
+          db.rewards.where('profileId').equals(id).delete(),
+          db.wallets.delete(id),
+          db.profiles.delete(id),
+        ])
+      },
+    )
     if ((await settingsRepo.get<string>('activeProfileId')) === id) await settingsRepo.set('activeProfileId', null)
   },
 }
@@ -302,4 +308,37 @@ export async function progressSnapshot(profileId: string): Promise<ProgressSnaps
 export async function clearAllData() {
   const db = getDb()
   await Promise.all(db.tables.map((t) => t.clear()))
+}
+
+// ---------------------------------------------------------------------------
+// Teacher-made assignments
+// ---------------------------------------------------------------------------
+
+export const assignmentRepo = {
+  list: () => getDb().assignments.orderBy('updatedAt').reverse().toArray(),
+  async published() {
+    return (await getDb().assignments.where('status').equals('published').toArray()).sort((a, b) => (a.dueAt ?? Infinity) - (b.dueAt ?? Infinity) || b.updatedAt - a.updatedAt)
+  },
+  get: (id: string) => getDb().assignments.get(id),
+  async save(a: Assignment) {
+    await getDb().assignments.put({ ...a, updatedAt: Date.now() })
+  },
+  async setStatus(id: string, status: Assignment['status']) {
+    await getDb().assignments.update(id, { status, updatedAt: Date.now() })
+  },
+  /** Delete an assignment together with every student's attempts at it. */
+  async remove(id: string) {
+    const db = getDb()
+    await db.transaction('rw', [db.assignments, db.assignmentAttempts], async () => {
+      await db.assignmentAttempts.where('assignmentId').equals(id).delete()
+      await db.assignments.delete(id)
+    })
+  },
+  attemptsFor: (assignmentId: string, profileId: string) => getDb().assignmentAttempts.where('[assignmentId+profileId]').equals([assignmentId, profileId]).sortBy('submittedAt'),
+  attemptsByProfile: (profileId: string) => getDb().assignmentAttempts.where('profileId').equals(profileId).toArray(),
+  allAttempts: () => getDb().assignmentAttempts.toArray(),
+  async submit(attempt: AssignmentAttempt) {
+    const id = await getDb().assignmentAttempts.add(attempt)
+    return { ...attempt, id }
+  },
 }

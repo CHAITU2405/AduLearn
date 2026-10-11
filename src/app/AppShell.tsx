@@ -1,5 +1,5 @@
 import { NavLink, Outlet, Link, useLocation } from 'react-router'
-import { BarChart3, Home, Map, RotateCcw, Settings } from 'lucide-react'
+import { BarChart3, ClipboardList, Home, Map, RotateCcw, Settings } from 'lucide-react'
 import { Suspense, useEffect } from 'react'
 import { PortraitFill } from '@/components/story/CharacterSprite'
 import { Logo } from '@/components/brand/Logo'
@@ -11,6 +11,7 @@ const NAV = [
   { to: '/world', label: 'World map', icon: Map },
   { to: '/progress', label: 'My progress', icon: BarChart3 },
   { to: '/review', label: 'Review', icon: RotateCcw },
+  { to: '/assignments', label: 'Assignments', icon: ClipboardList },
 ]
 
 export function AppShell() {
@@ -27,7 +28,7 @@ export function AppShell() {
       <header className="no-print sticky top-0 z-30 border-b border-line/70 bg-white/85 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2.5 sm:gap-4">
           <Link to={profile ? '/home' : '/'} className="shrink-0 rounded-xl" aria-label="AduLearn home">
-            <Logo compact className="[&_span.text-2xl]:text-xl sm:[&_span.text-2xl]:text-2xl" />
+            <Logo compact className="[&_span.text-2xl]:text-xl max-sm:[&>span:last-child]:hidden sm:[&_span.text-2xl]:text-2xl" />
           </Link>
           {profile && (
             <nav aria-label="Main" className="ml-auto flex items-center gap-0.5 sm:gap-1">
@@ -38,7 +39,7 @@ export function AppShell() {
                   aria-label={label}
                   className={({ isActive }) =>
                     cn(
-                      'inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-full px-2.5 font-bold transition-colors sm:px-3',
+                      'inline-flex min-h-11 min-w-10 items-center justify-center gap-1.5 rounded-full px-2 font-bold transition-colors sm:min-w-11 sm:px-3',
                       isActive ? 'bg-brand-soft text-brand-deep' : 'text-ink-soft hover:bg-paper',
                     )
                   }
