@@ -1,24 +1,38 @@
 import { useLiveQuery } from 'dexie-react-hooks'
+import { useState } from 'react'
 import { Download, Printer } from 'lucide-react'
 import { Button, Card, EmptyState, Notice, Pill, Spinner } from '@/components/ui'
 import { CHAPTERS, conceptName, getBoss, getMission } from '@/content'
 import { misconceptionLabel } from '@/content/misconceptions'
 import { compareAssessments } from '@/core/learning/assessment'
-import { BAND_LABELS, explainMastery, masteryBand, MASTERY_RULES } from '@/core/learning/mastery'
+import { BAND_LABELS, explainMastery, masteryBand, MASTERY_RULES, type EvidenceContext } from '@/core/learning/mastery'
 import { buildExport, downloadJson } from '@/data/exportImport'
 import { profileRepo } from '@/data/repositories'
 import { ComparisonView } from '@/features/assessment/ComparisonView'
 import { loadStudent } from '@/services/teacher'
 
+const RECENT_LIMIT = 40
+const ACTIVITY_FILTERS: { value: EvidenceContext | 'all'; label: string }[] = [
+  { value: 'all', label: 'All activities' },
+  { value: 'mission', label: 'Missions' },
+  { value: 'boss', label: 'Bosses' },
+  { value: 'practice', label: 'Practice' },
+  { value: 'review', label: 'Review' },
+  { value: 'diagnostic', label: 'Starting checks' },
+  { value: 'followup', label: 'Follow-up checks' },
+]
+
 export function StudentDetail({ selectedId, onSelect }: { selectedId: string | null; onSelect: (id: string) => void }) {
   const profiles = useLiveQuery(() => profileRepo.list(), [])
   const id = selectedId ?? profiles?.[0]?.id ?? null
+  const [activity, setActivity] = useState<EvidenceContext | 'all'>('all')
   const student = useLiveQuery(async () => {
     if (!id) return null
     const p = await profileRepo.get(id)
     return p ? loadStudent(p) : null
   }, [id])
   if (!profiles) return <Spinner />
+  const filtered = !student ? [] : activity === 'all' ? student.attempts : student.attempts.filter((a) => a.context === activity)
   if (profiles.length === 0) return <EmptyState title="No explorers on this device yet" />
 
   return (
@@ -161,9 +175,32 @@ export function StudentDetail({ selectedId, onSelect }: { selectedId: string | n
           </Card>
 
           <Card as="section" className="print-break p-5">
-            <h3 className="text-xl font-bold">Recent answers</h3>
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <h3 className="text-xl font-bold">Recent answers</h3>
+              {student.attempts.length > 0 && (
+                <div className="no-print">
+                  <label htmlFor="activity-filter" className="block text-sm font-bold">
+                    Activity
+                  </label>
+                  <select
+                    id="activity-filter"
+                    value={activity}
+                    onChange={(e) => setActivity(e.target.value as EvidenceContext | 'all')}
+                    className="mt-1 min-h-11 rounded-xl border-2 border-line bg-white px-3 font-semibold"
+                  >
+                    {ACTIVITY_FILTERS.map((f) => (
+                      <option key={f.value} value={f.value}>
+                        {f.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
             {student.attempts.length === 0 ? (
               <p className="mt-2 text-ink-soft">No answers yet.</p>
+            ) : filtered.length === 0 ? (
+              <p className="mt-2 text-ink-soft">No answers from this activity yet.</p>
             ) : (
               <div className="mt-3 overflow-x-auto">
                 <table className="w-full min-w-[44rem] text-left text-sm">
@@ -179,7 +216,7 @@ export function StudentDetail({ selectedId, onSelect }: { selectedId: string | n
                     </tr>
                   </thead>
                   <tbody>
-                    {student.attempts.slice(0, 40).map((a) => (
+                    {filtered.slice(0, RECENT_LIMIT).map((a) => (
                       <tr key={a.id} className="border-b border-line/60 align-top">
                         <td className="py-1.5 pr-3 whitespace-nowrap">{new Date(a.at).toLocaleString()}</td>
                         <td className="py-1.5 pr-3">{conceptName(a.conceptId)}</td>
@@ -192,6 +229,9 @@ export function StudentDetail({ selectedId, onSelect }: { selectedId: string | n
                     ))}
                   </tbody>
                 </table>
+                <p className="mt-2 text-sm text-ink-muted">
+                  {filtered.length > RECENT_LIMIT ? `Showing the newest ${RECENT_LIMIT} of ${filtered.length} answers.` : `Showing all ${filtered.length} answers.`}
+                </p>
               </div>
             )}
           </Card>
