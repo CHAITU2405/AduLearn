@@ -77,7 +77,7 @@ npx playwright install chromium   # first time only
 npm run test:e2e
 ```
 
-Playwright builds the app with `--mode e2e` into `dist-e2e/` and serves it on port 4174. That build includes a small test-only hook (`window.__adulearnTest`) so tests can answer questions through the real UI; **normal builds do not contain it** (`.env.e2e` sets `VITE_E2E=true`).
+Playwright builds the app with `--mode e2e` into `dist-e2e/` and serves it on port 4174. That build includes a small test-only hook (`window.__adulearnTest`) so tests can answer questions through the real UI. The hook is switched on by `VITE_E2E=true` in the committed `.env.e2e` file, which Vite reads only in `e2e` mode, so the tests work in a fresh clone and **normal builds (`npm run build`) do not contain it**.
 
 If your OS blocks Playwright's downloaded browser (for example Windows Smart App Control / application-control policies), use an installed, signed browser instead:
 
