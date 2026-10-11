@@ -5,7 +5,7 @@
  * Not yet verified against the official AP SSC Class 8 textbook.
  */
 import { buildMcq, choice, defineTemplate, ILLUSTRATIVE, int, PENDING, PROTOTYPE_APPROVED } from '@/core/content/define'
-import type { QuestionTemplate } from '@/core/content/types'
+import type { LabTestView, QuestionTemplate } from '@/core/content/types'
 
 const CH = 'sci-field'
 const base = { version: 1, grade: 8 as const, subject: 'science' as const, chapterId: CH, curriculum: ILLUSTRATIVE }
@@ -40,33 +40,125 @@ const FUNCTIONS = [
 ] as const
 
 const ELEMENTS = [
-  { name: 'Iron', symbol: 'Fe', metal: true },
-  { name: 'Copper', symbol: 'Cu', metal: true },
-  { name: 'Sulphur', symbol: 'S', metal: false },
-  { name: 'Carbon', symbol: 'C', metal: false },
-  { name: 'Aluminium', symbol: 'Al', metal: true },
-  { name: 'Oxygen', symbol: 'O', metal: false },
-  { name: 'Zinc', symbol: 'Zn', metal: true },
-  { name: 'Phosphorus', symbol: 'P', metal: false },
-  { name: 'Magnesium', symbol: 'Mg', metal: true },
-  { name: 'Sodium', symbol: 'Na', metal: true },
+  { name: 'Iron', symbol: 'Fe', metal: true, form: 'solid' },
+  { name: 'Copper', symbol: 'Cu', metal: true, form: 'solid' },
+  { name: 'Sulphur', symbol: 'S', metal: false, form: 'powder' },
+  { name: 'Carbon', symbol: 'C', metal: false, form: 'solid' },
+  { name: 'Aluminium', symbol: 'Al', metal: true, form: 'solid' },
+  { name: 'Oxygen', symbol: 'O', metal: false, form: 'gas' },
+  { name: 'Zinc', symbol: 'Zn', metal: true, form: 'solid' },
+  { name: 'Phosphorus', symbol: 'P', metal: false, form: 'powder' },
+  { name: 'Magnesium', symbol: 'Mg', metal: true, form: 'solid' },
+  { name: 'Sodium', symbol: 'Na', metal: true, form: 'soft' },
 ] as const
+
+/** What the testing bench shows for each element (evidence, not the answer label). */
+function elementTests(e: (typeof ELEMENTS)[number]): LabTestView[] {
+  if (e.form === 'gas')
+    return [
+      { tool: 'hammer', effect: 'none', note: 'It is a gas in a jar — there is nothing solid to hammer!' },
+      { tool: 'tester', effect: 'dark', note: 'The bulb stays off.' },
+      { tool: 'polish', effect: 'none', note: 'You cannot polish a gas.' },
+    ]
+  if (!e.metal)
+    return [
+      { tool: 'hammer', effect: 'shatter', note: 'It crumbles into powder instead of bending.' },
+      { tool: 'tester', effect: 'dark', note: 'The bulb stays off.' },
+      { tool: 'polish', effect: 'dull', note: 'It stays dull — no shine at all.' },
+    ]
+  return [
+    e.form === 'soft'
+      ? { tool: 'hammer', effect: 'squash', note: 'It is so soft it squashes flat — it can even be cut with a knife.' }
+      : { tool: 'hammer', effect: 'flatten', note: 'It flattens into a thin sheet without breaking.' },
+    { tool: 'tester', effect: 'glow', note: 'The bulb glows brightly.' },
+    { tool: 'polish', effect: 'shine', note: e.form === 'soft' ? 'A freshly cut surface is bright and shiny.' : 'Rubbing it shows a bright, shiny surface.' },
+  ]
+}
 
 const PROPERTY_OBSERVATIONS = [
-  { obs: 'flattens into a thin sheet when hammered', metal: true, property: 'malleable — it can be beaten into sheets' },
-  { obs: 'breaks into powder when hammered', metal: false, property: 'brittle — it breaks instead of bending' },
-  { obs: 'can be drawn into a thin wire', metal: true, property: 'ductile — it can be drawn into wires' },
-  { obs: 'makes a ringing sound when struck', metal: true, property: 'sonorous — it rings when struck' },
-  { obs: 'does not let the circuit-tester bulb glow', metal: false, property: 'a poor conductor of electricity' },
-  { obs: 'makes the circuit-tester bulb glow', metal: true, property: 'a good conductor of electricity' },
-] as const
+  {
+    obs: 'flattens into a thin sheet when hammered',
+    metal: true,
+    property: 'malleable — it can be beaten into sheets',
+    test: { tool: 'hammer', effect: 'flatten', note: 'It flattens into a thin sheet without breaking.' },
+  },
+  {
+    obs: 'breaks into powder when hammered',
+    metal: false,
+    property: 'brittle — it breaks instead of bending',
+    test: { tool: 'hammer', effect: 'shatter', note: 'It crumbles into powder instead of bending.' },
+  },
+  {
+    obs: 'can be drawn into a thin wire',
+    metal: true,
+    property: 'ductile — it can be drawn into wires',
+    test: { tool: 'wire', effect: 'wire', note: 'It stretches out into a long, thin wire.' },
+  },
+  {
+    obs: 'makes a ringing sound when struck',
+    metal: true,
+    property: 'sonorous — it rings when struck',
+    test: { tool: 'strike', effect: 'ring', note: 'Clang! It rings like a bell.' },
+  },
+  {
+    obs: 'does not let the circuit-tester bulb glow',
+    metal: false,
+    property: 'a poor conductor of electricity',
+    test: { tool: 'tester', effect: 'dark', note: 'The bulb stays off.' },
+  },
+  {
+    obs: 'makes the circuit-tester bulb glow',
+    metal: true,
+    property: 'a good conductor of electricity',
+    test: { tool: 'tester', effect: 'glow', note: 'The bulb glows brightly.' },
+  },
+] as const satisfies readonly { obs: string; metal: boolean; property: string; test: LabTestView }[]
 
 const OXIDES = [
-  { element: 'magnesium', metal: true, oxide: 'magnesium oxide' },
-  { element: 'calcium', metal: true, oxide: 'calcium oxide' },
-  { element: 'sulphur', metal: false, oxide: 'sulphur dioxide' },
-  { element: 'carbon', metal: false, oxide: 'carbon dioxide' },
+  {
+    element: 'magnesium',
+    metal: true,
+    oxide: 'magnesium oxide',
+    product: 'ash',
+    flame: '#f8fafc',
+    burnNote: 'It burns with a dazzling white flame and leaves a white powder: magnesium oxide.',
+  },
+  {
+    element: 'calcium',
+    metal: true,
+    oxide: 'calcium oxide',
+    product: 'ash',
+    flame: '#f97316',
+    burnNote: 'It burns with an orange-red flame and leaves white calcium oxide.',
+  },
+  {
+    element: 'sulphur',
+    metal: false,
+    oxide: 'sulphur dioxide',
+    product: 'gas',
+    flame: '#3b82f6',
+    burnNote: 'It burns with a blue flame and gives off a choking gas, sulphur dioxide, which is collected in a jar.',
+  },
+  {
+    element: 'carbon',
+    metal: false,
+    oxide: 'carbon dioxide',
+    product: 'gas',
+    flame: '#fb923c',
+    burnNote: 'It glows orange and gives off an invisible gas, carbon dioxide, which is collected in a jar.',
+  },
 ] as const
+
+const oxideLab = (o: (typeof OXIDES)[number]) => ({
+  kind: 'oxide' as const,
+  element: o.element,
+  oxide: o.oxide,
+  product: o.product,
+  flame: o.flame,
+  burnNote: o.burnNote,
+  litmus: o.metal ? ('red' as const) : ('blue' as const),
+  litmusAfter: o.metal ? ('blue' as const) : ('red' as const),
+})
 
 const PRESSURE_EXAMPLES = [
   {
@@ -92,12 +184,54 @@ const PRESSURE_EXAMPLES = [
 ] as const
 
 const FORCE_SITUATIONS = [
-  { s: 'A magnet pulls an iron nail towards it', contact: false, type: 'Magnetic force' },
-  { s: 'A mango falls from a tree to the ground', contact: false, type: 'Gravitational force' },
-  { s: 'A player kicks a football', contact: true, type: 'Muscular force' },
-  { s: 'A rolling ball slowly stops on grass', contact: true, type: 'Frictional force' },
-  { s: 'A rubbed balloon attracts small bits of paper', contact: false, type: 'Electrostatic force' },
-  { s: 'You push a heavy door open', contact: true, type: 'Muscular force' },
+  {
+    s: 'A magnet pulls an iron nail towards it',
+    contact: false,
+    type: 'Magnetic force',
+    actor: { icon: '🧲', name: 'magnet' },
+    target: { icon: '🔩', name: 'iron nail' },
+    reaction: 'The nail jumped towards the magnet before they touched!',
+  },
+  {
+    s: 'A mango falls from a tree to the ground',
+    contact: false,
+    type: 'Gravitational force',
+    actor: { icon: '🥭', name: 'mango' },
+    target: { icon: '🌍', name: 'ground' },
+    reaction: 'The mango was pulled down towards the ground while nothing was touching it.',
+  },
+  {
+    s: 'A player kicks a football',
+    contact: true,
+    type: 'Muscular force',
+    actor: { icon: '🦶', name: 'foot' },
+    target: { icon: '⚽', name: 'football' },
+    reaction: 'The ball only moved once the foot touched it.',
+  },
+  {
+    s: 'A rolling ball slowly stops on grass',
+    contact: true,
+    type: 'Frictional force',
+    actor: { icon: '⚽', name: 'rolling ball' },
+    target: { icon: '🌱', name: 'grass' },
+    reaction: 'The ball only slowed down where it rubbed against the grass.',
+  },
+  {
+    s: 'A rubbed balloon attracts small bits of paper',
+    contact: false,
+    type: 'Electrostatic force',
+    actor: { icon: '🎈', name: 'rubbed balloon' },
+    target: { icon: '📄', name: 'bits of paper' },
+    reaction: 'The paper bits jumped up before the balloon touched them!',
+  },
+  {
+    s: 'You push a heavy door open',
+    contact: true,
+    type: 'Muscular force',
+    actor: { icon: '✋', name: 'hand' },
+    target: { icon: '🚪', name: 'door' },
+    reaction: 'The door only moved once the hand pushed on it.',
+  },
 ] as const
 
 const FORCE_TYPES = [
@@ -283,7 +417,12 @@ export const scienceTemplates: QuestionTemplate[] = [
         { text: 'Non-metal', correct: !e.metal, misconception: e.metal ? wrong : undefined },
       ])
       return {
-        view: { context: 'Sort the sample jars on the field station shelf.', prompt: `Is ${e.name} (${e.symbol}) a metal or a non-metal?`, body: mcq.view },
+        view: {
+          context: 'Sort the sample jars on the field station shelf.',
+          prompt: `Test the ${e.name} (${e.symbol}) sample, then put it on the right shelf: metal or non-metal?`,
+          body: mcq.view,
+          lab: { kind: 'sample-test', sample: { name: e.name, symbol: e.symbol, form: e.form }, tests: elementTests(e) },
+        },
         key: { body: mcq.key, answerDisplay: e.metal ? 'Metal' : 'Non-metal', explanation: `${e.name} (${e.symbol}) is a ${e.metal ? 'metal' : 'non-metal'}.` },
         hints: ['Think about whether it is shiny and conducts electricity.'],
       }
@@ -341,7 +480,12 @@ export const scienceTemplates: QuestionTemplate[] = [
         { text: 'Most likely a non-metal', correct: !p.metal, misconception: p.metal ? wrong : undefined },
       ])
       return {
-        view: { context: 'A student tests an unknown solid sample at the field station.', prompt: `The sample ${p.obs}. What is it?`, body: mcq.view },
+        view: {
+          context: 'An unknown solid sample has turned up at the field station.',
+          prompt: 'Run the test on the bench, then decide: which shelf does the sample belong on?',
+          body: mcq.view,
+          lab: { kind: 'sample-test', sample: { name: 'Unknown sample', form: p.metal ? 'solid' : 'powder' }, tests: [p.test] },
+        },
         key: {
           body: mcq.key,
           answerDisplay: p.metal ? 'Most likely a metal' : 'Most likely a non-metal',
@@ -375,9 +519,10 @@ export const scienceTemplates: QuestionTemplate[] = [
       ])
       return {
         view: {
-          context: `A small piece of ${o.element} is burned safely by Dr. Nova, and the oxide formed is dissolved in water.`,
-          prompt: `A strip of ${litmus} litmus paper is dipped into the solution. What is observed?`,
+          context: `Dr. Nova hands you a small piece of ${o.element}. Burn it safely, then dissolve the oxide in water.`,
+          prompt: `Next, a strip of ${litmus} litmus paper goes into the solution. What do you predict?`,
           body: mcq.view,
+          lab: oxideLab(o),
         },
         key: {
           body: mcq.key,
@@ -420,8 +565,9 @@ export const scienceTemplates: QuestionTemplate[] = [
       return {
         view: {
           context: 'A sample bottle labelled with only an element name is found after the storm.',
-          prompt: `The label says “${o.element}”. The element was burned and its oxide dissolved in water.`,
+          prompt: `The label says “${o.element}”. Burn it, dissolve the oxide in water, then predict what you will find.`,
           body: { kind: 'multi', parts: [nature.view, effect.view] },
+          lab: oxideLab(o),
         },
         key: {
           body: { kind: 'multi', parts: [nature.key, effect.key] },
@@ -455,8 +601,9 @@ export const scienceTemplates: QuestionTemplate[] = [
       return {
         view: {
           context: `A ${obj} rests on the floor of the field station.`,
-          prompt: `It pushes down with a force of ${f} N on an area of ${a} m². What pressure does it exert on the floor?`,
+          prompt: 'Measure its force and the area of its base, then set the pressure gauge. What pressure does it exert on the floor?',
           body: { kind: 'numeric', unit: 'Pa', placeholder: 'pressure' },
+          lab: { kind: 'pressure-measure', object: obj, force: f, area: a },
         },
         key: {
           body: {
@@ -496,7 +643,20 @@ export const scienceTemplates: QuestionTemplate[] = [
         { text: 'Pressure does not depend on area', misconception: { misconceptionId: M.areaInverse, feedback: 'Pressure = force ÷ area, so area matters.' } },
       ])
       return {
-        view: { prompt: ex.q, body: mcq.view },
+        view: {
+          context: 'Try the brick in the sand pit first: stand it on different faces and watch how deep it sinks.',
+          prompt: ex.q,
+          body: mcq.view,
+          lab: {
+            kind: 'pressure-demo',
+            weight: 30,
+            faces: [
+              { name: 'Lying flat', area: 0.06 },
+              { name: 'On its side', area: 0.03 },
+              { name: 'Standing on end', area: 0.015 },
+            ],
+          },
+        },
         key: { body: mcq.key, answerDisplay: ex.correct, explanation: `Pressure = force ÷ area. ${ex.correct}.` },
         hints: ['For the same force, what happens to pressure when the area gets smaller?'],
       }
@@ -519,8 +679,9 @@ export const scienceTemplates: QuestionTemplate[] = [
         return {
           view: {
             context: 'A weather balloon platform must not sink into the mud.',
-            prompt: `The mud can take a pressure of ${p} Pa. The platform’s base has an area of ${a} m². What is the largest force it can exert?`,
+            prompt: `The mud can take a pressure of ${p} Pa and the platform’s base is ${a} m². Load it up: what is the largest force it can take without sinking?`,
             body: { kind: 'numeric', unit: 'N', placeholder: 'force' },
+            lab: { kind: 'pressure-sand', mode: 'force', area: a, maxPressure: p },
           },
           key: {
             body: {
@@ -539,8 +700,9 @@ export const scienceTemplates: QuestionTemplate[] = [
       return {
         view: {
           context: 'A field rover must spread its weight so it does not sink into soft sand.',
-          prompt: `The rover pushes down with ${f} N. The sand can take ${p} Pa. What base area is needed?`,
+          prompt: `The rover pushes down with ${f} N and the sand can take ${p} Pa. Try the base plates: what is the smallest base area that stops it sinking?`,
           body: { kind: 'numeric', unit: 'm²', placeholder: 'area' },
+          lab: { kind: 'pressure-sand', mode: 'area', force: f, maxPressure: p, plates: [0.2, 0.5, 1, 2, 4] },
         },
         key: {
           body: {
@@ -578,7 +740,11 @@ export const scienceTemplates: QuestionTemplate[] = [
         { text: 'Non-contact force', correct: !s.contact, misconception: s.contact ? wrong : undefined },
       ])
       return {
-        view: { prompt: `${s.s}. Is this a contact or a non-contact force?`, body: mcq.view },
+        view: {
+          prompt: `${s.s}. Try it on the bench, then sort the force: contact or non-contact?`,
+          body: mcq.view,
+          lab: { kind: 'force-push', actor: s.actor, target: s.target, contact: s.contact, reaction: s.reaction },
+        },
         key: {
           body: mcq.key,
           answerDisplay: s.contact ? 'Contact force' : 'Non-contact force',
