@@ -21,6 +21,8 @@ const OnboardingPage = named(() => import('@/features/onboarding/OnboardingPage'
 const RegionPage = named(() => import('@/features/world/RegionPage'), 'RegionPage')
 const BackpackPage = named(() => import('@/features/backpack/BackpackPage'), 'BackpackPage')
 const TeacherPage = named(() => import('@/features/teacher/TeacherPage'), 'TeacherPage')
+const AssignmentsPage = named(() => import('@/features/assignments/AssignmentsPage'), 'AssignmentsPage')
+const AssignmentAttemptPage = named(() => import('@/features/assignments/AssignmentAttemptPage'), 'AssignmentAttemptPage')
 import { PrefsProvider, ProfileProvider, useProfile } from './context'
 
 function RequireProfile({ children }: { children: ReactNode }) {
@@ -81,6 +83,8 @@ const router = createBrowserRouter([
       { path: '/chapter/:chapterId', element: guard(<ChapterPage />) },
       { path: '/assessment/:chapterId/:kind', element: guard(<AssessmentPage />) },
       { path: '/review', element: guard(<ReviewPage />) },
+      { path: '/assignments', element: guard(<AssignmentsPage />) },
+      { path: '/assignments/:assignmentId', element: guard(<AssignmentAttemptPage />) },
       { path: '/progress', element: guard(<ProgressPage />) },
       { path: '/settings', element: <SettingsPage /> },
       { path: '/teacher', element: <TeacherPage /> },

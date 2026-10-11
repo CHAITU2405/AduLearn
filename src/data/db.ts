@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable, type Table } from 'dexie'
+import type { Assignment, AssignmentAttempt } from '@/core/assignments'
 import type { AvatarConfig } from '@/core/avatar'
 import type { Difficulty, ReviewStatus } from '@/core/content/types'
 import type { BossRoundResult } from '@/core/game/boss'
@@ -135,7 +136,7 @@ export interface WalletRecord {
 }
 
 export const DB_NAME = 'adulearn'
-export const DB_VERSION = 3
+export const DB_VERSION = 4
 
 export class AduLearnDB extends Dexie {
   profiles!: EntityTable<ProfileRecord, 'id'>
@@ -150,6 +151,8 @@ export class AduLearnDB extends Dexie {
   settings!: EntityTable<SettingRecord, 'key'>
   aiCache!: EntityTable<AiCacheRecord, 'key'>
   wallets!: EntityTable<WalletRecord, 'profileId'>
+  assignments!: EntityTable<Assignment, 'id'>
+  assignmentAttempts!: EntityTable<AssignmentAttempt, 'id'>
 
   constructor(name = DB_NAME) {
     super(name)
@@ -196,6 +199,11 @@ export class AduLearnDB extends Dexie {
           await tx.table('wallets').put({ profileId: p.id, coins: correct * 10, totalEarned: correct * 10, owned: [], facts: [], updatedAt: Date.now() } satisfies WalletRecord)
         }
       })
+    // Version 4: teacher-made assignments and students' attempts at them.
+    this.version(4).stores({
+      assignments: 'id, status, updatedAt',
+      assignmentAttempts: '++id, assignmentId, profileId, [assignmentId+profileId], submittedAt',
+    })
   }
 }
 

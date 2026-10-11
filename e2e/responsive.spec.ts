@@ -10,7 +10,7 @@ test('layouts do not overflow on a phone', async ({ page }) => {
   await page.goto('/')
   await expectNoHorizontalOverflow(page, 'welcome')
   await createExplorer(page, 'Phone')
-  for (const path of ['/world', '/home', '/region/numbers', '/chapter/math-equations', '/progress', '/review', '/settings', '/about', '/teacher']) {
+  for (const path of ['/world', '/home', '/region/numbers', '/chapter/math-equations', '/progress', '/review', '/settings', '/about', '/teacher', '/assignments']) {
     await page.goto(path)
     await page.waitForLoadState('networkidle')
     await expectNoHorizontalOverflow(page, path)
