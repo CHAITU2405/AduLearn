@@ -11,6 +11,10 @@ export const AVATAR_OPTIONS = {
   accessory: ['none', 'glasses', 'cap', 'headband', 'scarf', 'explorer-hat', 'headphones', 'flower', 'crown'],
 } as const
 
+/** Painted hero portraits the explorer can play as (see content/characters.ts). */
+export const HERO_IDS = ['arjun', 'meera', 'ravi', 'anika'] as const
+export type HeroId = (typeof HERO_IDS)[number]
+
 export const AVATAR_LABELS = {
   hairStyle: { short: 'Short', long: 'Long', curly: 'Curly', bun: 'Bun', braid: 'Braid', spiky: 'Spiky' },
   outfit: { tee: 'T-shirt', hoodie: 'Hoodie', kurta: 'Kurta', jacket: 'Field jacket', cape: 'Adventurer cape' },
@@ -37,6 +41,8 @@ export const avatarSchema = z.object({
   backpack: z.enum(AVATAR_OPTIONS.backpack),
   backpackColor: z.enum(AVATAR_OPTIONS.backpackColor),
   accessory: z.enum(AVATAR_OPTIONS.accessory),
+  /** Painted hero shown in story scenes and challenges. Older profiles have none and use the drawn figure. */
+  hero: z.enum(HERO_IDS).optional(),
 })
 
 export type AvatarConfig = z.infer<typeof avatarSchema>
@@ -50,6 +56,7 @@ export const DEFAULT_AVATAR: AvatarConfig = {
   backpack: 'explorer',
   backpackColor: '#f97316',
   accessory: 'none',
+  hero: 'arjun',
 }
 
 /** Nicknames must not look like contact details; real names are never required. */

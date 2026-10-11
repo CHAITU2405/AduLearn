@@ -184,6 +184,8 @@ function MissionFlow({ mission }: { mission: Mission }) {
             onRunEnd={onRunEnd}
             onGoalMet={onGoalMet}
             onResult={onResult}
+            speaker={mission.characterId}
+            player={{ avatar: profile.avatar, name: profile.nickname }}
           />
         </>
       )}

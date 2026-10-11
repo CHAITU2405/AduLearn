@@ -24,126 +24,252 @@ interface Props {
   walking?: boolean
 }
 
-/** Outline colour shared with the painted artwork's linework. */
-const OL = '#3b2a1e'
-const SW = 2.4
-const line = { stroke: OL, strokeWidth: SW, strokeLinejoin: 'round' as const, strokeLinecap: 'round' as const }
+/*
+ * Drawn in the same soft, 3D-shaded style as the painted characters: real
+ * proportions, gradient shading instead of thick outlines, detailed eyes and
+ * layered hair. Every part is driven by the avatar config, so it stays fully
+ * customisable. Coordinates: the figure stands in a 120×180 box, feet at y≈172.
+ */
 
-function Face({ mood, brow }: { mood: Mood; brow: string }) {
-  const eyeY = mood === 'thinking' ? 56 : 59
-  const brows = {
-    happy: 'M42 48 Q47 45 53 47 M67 47 Q73 45 78 48',
-    excited: 'M42 46 Q47 42 53 45 M67 45 Q73 42 78 46',
-    sad: 'M42 50 Q48 47 53 45 M67 45 Q72 47 78 50',
-    thinking: 'M42 47 Q47 45 53 47 M67 44 Q73 41 78 44',
-    surprised: 'M42 44 Q47 40 53 43 M67 43 Q73 40 78 44',
-  }[mood]
-  const eye = (cx: number) =>
-    mood === 'excited' ? (
-      <path d={`M${cx - 5.5} ${eyeY + 1} Q${cx} ${eyeY - 7} ${cx + 5.5} ${eyeY + 1}`} fill="none" stroke={OL} strokeWidth="3" strokeLinecap="round" />
-    ) : (
+/** Thin edge in a darker tone of the fill, so the figure reads on painted backgrounds. */
+const edge = (fill: string, w = 0.9) => ({ stroke: shade(fill, -0.5), strokeWidth: w, strokeLinejoin: 'round' as const, strokeLinecap: 'round' as const })
+
+function Eye({ cx, mood, uid, flip }: { cx: number; mood: Mood; uid: string; flip?: boolean }) {
+  const y = 37.5
+  const dir = flip ? -1 : 1
+  if (mood === 'excited')
+    return (
       <g>
-        <ellipse cx={cx} cy={eyeY} rx="5.6" ry={mood === 'surprised' ? 7 : 6.4} fill="#fff" stroke={OL} strokeWidth="1.8" />
-        <ellipse cx={cx + (mood === 'thinking' ? 1.2 : 0.4)} cy={eyeY + (mood === 'thinking' ? -1.4 : 0.8)} rx="3.6" ry="4.4" fill="#5b3a24" />
-        <ellipse cx={cx + (mood === 'thinking' ? 1.2 : 0.4)} cy={eyeY + (mood === 'thinking' ? -1.4 : 0.8)} rx="2" ry="2.6" fill="#1c120b" />
-        <circle cx={cx + 1.8} cy={eyeY - 1.6} r="1.5" fill="#fff" />
-        <circle cx={cx - 1.4} cy={eyeY + 2.6} r="0.8" fill="#fff" opacity="0.8" />
+        <path d={`M${cx - 4.6} ${y + 1} Q${cx} ${y - 4.2} ${cx + 4.6} ${y + 1}`} fill="none" stroke="#1c120b" strokeWidth="1.6" strokeLinecap="round" />
+        <path d={`M${cx + dir * 4.4} ${y} l${dir * 1.6} -1.4`} stroke="#1c120b" strokeWidth="1" strokeLinecap="round" />
       </g>
     )
+  const ry = mood === 'surprised' ? 4.9 : 4.2
+  const lookX = mood === 'thinking' ? 1.1 : 0
+  const lookY = mood === 'thinking' ? -1 : mood === 'sad' ? 0.9 : 0.2
   return (
     <g>
-      <path d={brows} fill="none" stroke={brow} strokeWidth="2.6" strokeLinecap="round" />
-      <g className="avatar-blink">
-        {eye(48)}
-        {eye(72)}
+      <ellipse cx={cx} cy={y} rx="5.2" ry={ry} fill="#fff" />
+      <g clipPath={`url(#eye-${uid}-${cx})`}>
+        <circle cx={cx + lookX} cy={y + lookY} r="3.8" fill={`url(#iris-${uid})`} />
+        <circle cx={cx + lookX} cy={y + lookY} r="1.8" fill="#120a05" />
+        <path d={`M${cx - 5} ${y - ry} H${cx + 5} V${y - ry + 1.6} Q${cx} ${y - ry + 2.8} ${cx - 5} ${y - ry + 1.6} Z`} fill="#000" opacity="0.12" />
       </g>
-      <ellipse cx="41" cy="69" rx="5.5" ry="3.4" fill="#fb7185" opacity="0.42" />
-      <ellipse cx="79" cy="69" rx="5.5" ry="3.4" fill="#fb7185" opacity="0.42" />
-      <path d="M58.5 65 Q60 67 61.5 65" fill="none" stroke={OL} strokeWidth="1.6" strokeLinecap="round" opacity="0.6" />
-      {mood === 'happy' && <path d="M52 71 Q60 78 68 71" fill="none" stroke={OL} strokeWidth="2.6" strokeLinecap="round" />}
+      <circle cx={cx + lookX + 1.3} cy={y + lookY - 1.4} r="1.3" fill="#fff" />
+      <circle cx={cx + lookX - 1} cy={y + lookY + 1.3} r="0.55" fill="#fff" opacity="0.85" />
+      {/* Upper lash line with a small flick at the outer corner */}
+      <path
+        d={`M${cx - dir * 5.4} ${y + 0.4} Q${cx - dir * 2.2} ${y - ry - 0.6} ${cx + dir * 3.3} ${y - ry + 0.2} Q${cx + dir * 4.8} ${y - ry + 1.2} ${cx + dir * 5.6} ${y - ry + 0.6}`}
+        fill="none"
+        stroke="#1c120b"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path d={`M${cx - 3.6} ${y + ry - 0.2} Q${cx} ${y + ry + 0.9} ${cx + 3.6} ${y + ry - 0.2}`} fill="none" stroke="#1c120b" strokeWidth="0.45" opacity="0.5" />
+    </g>
+  )
+}
+
+function Face({ mood, c, uid }: { mood: Mood; c: AvatarConfig; uid: string }) {
+  const brow = shade(c.hairColor, -0.25)
+  const lip = shade(c.skin, -0.38)
+  const brows = {
+    happy: 'M47.5 31.2 Q51.5 29.2 56 30.6 M64 30.6 Q68.5 29.2 72.5 31.2',
+    excited: 'M47.5 30 Q51.5 27.6 56 29.2 M64 29.2 Q68.5 27.6 72.5 30',
+    sad: 'M47.5 31 Q52 30.6 56 28.8 M64 28.8 Q68 30.6 72.5 31',
+    thinking: 'M47.5 31.4 Q51.5 30.2 56 31 M64 29.4 Q68.5 27.4 72.5 29.6',
+    surprised: 'M47.5 28.6 Q51.5 26.2 56 27.8 M64 27.8 Q68.5 26.2 72.5 28.6',
+  }[mood]
+  return (
+    <g>
+      <path d={brows} fill="none" stroke={brow} strokeWidth="1.7" strokeLinecap="round" />
+      <g className="avatar-blink">
+        <Eye cx={51} mood={mood} uid={uid} flip />
+        <Eye cx={69} mood={mood} uid={uid} />
+      </g>
+      {/* Soft nose */}
+      <path d="M60.6 39.5 Q62 44 59.6 45.2" fill="none" stroke={shade(c.skin, -0.3)} strokeWidth="0.9" strokeLinecap="round" opacity="0.8" />
+      <ellipse cx="59.6" cy="45.2" rx="1.8" ry="0.7" fill={shade(c.skin, -0.25)} opacity="0.35" />
+      {/* Cheeks */}
+      <ellipse cx="47.5" cy="44.5" rx="3.6" ry="2.2" fill="#fb7185" opacity="0.22" />
+      <ellipse cx="72.5" cy="44.5" rx="3.6" ry="2.2" fill="#fb7185" opacity="0.22" />
+      {/* Mouth */}
+      {mood === 'happy' && (
+        <g>
+          <path d="M55 48.8 Q60 50 65 48.8 Q63.8 53.6 60 53.6 Q56.2 53.6 55 48.8 Z" fill="#8b2c2c" stroke={lip} strokeWidth="0.6" strokeLinejoin="round" />
+          <path d="M55.6 49.1 Q60 50.2 64.4 49.1 L64 50.5 Q60 51.3 56 50.5 Z" fill="#fff" />
+          <path d="M57.6 52.6 Q60 53.3 62.4 52.6" fill="none" stroke="#fb7185" strokeWidth="0.9" strokeLinecap="round" opacity="0.8" />
+        </g>
+      )}
       {mood === 'excited' && (
         <g>
-          <path d="M51 70 Q60 82 69 70 Z" fill="#9f1239" stroke={OL} strokeWidth="2.2" strokeLinejoin="round" />
-          <path d="M55 75 Q60 79 65 75 Q60 73 55 75 Z" fill="#fb7185" />
+          <path d="M53.6 48.4 Q60 49.6 66.4 48.4 Q65 56 60 56 Q55 56 53.6 48.4 Z" fill="#7f1d1d" stroke={lip} strokeWidth="0.9" strokeLinejoin="round" />
+          <path d="M54.4 48.8 Q60 50 65.6 48.8 L65.2 50.4 Q60 51.4 54.8 50.4 Z" fill="#fff" />
+          <ellipse cx="60" cy="54.2" rx="3.2" ry="1.5" fill="#fb7185" />
         </g>
       )}
-      {mood === 'sad' && <path d="M53 75 Q60 69 67 75" fill="none" stroke={OL} strokeWidth="2.6" strokeLinecap="round" />}
-      {mood === 'thinking' && <path d="M54 73 Q61 74 66 71" fill="none" stroke={OL} strokeWidth="2.6" strokeLinecap="round" />}
-      {mood === 'surprised' && <ellipse cx="60" cy="73" rx="4" ry="5" fill="#9f1239" stroke={OL} strokeWidth="2" />}
+      {mood === 'sad' && <path d="M55.6 51.8 Q60 48.8 64.4 51.8" fill="none" stroke={lip} strokeWidth="1.3" strokeLinecap="round" />}
+      {mood === 'thinking' && <path d="M56 51 Q60.5 51.6 64.4 49.4" fill="none" stroke={lip} strokeWidth="1.3" strokeLinecap="round" />}
+      {mood === 'surprised' && <ellipse cx="60" cy="51.2" rx="2.4" ry="3" fill="#7f1d1d" stroke={lip} strokeWidth="0.8" />}
     </g>
   )
 }
 
-/** Front hair shapes (drawn over the head). */
-function HairFront({ style, color, dark }: { style: AvatarConfig['hairStyle']; color: string; dark: string }) {
-  const hl = <path d="M40 31 Q52 23 66 25" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" opacity="0.28" />
-  if (style === 'curly') {
-    const puffs = [
-      [33, 47, 9],
-      [36, 35, 10],
-      [46, 26, 11],
-      [59, 22, 11.5],
-      [72, 25, 11],
-      [83, 33, 10],
-      [87, 46, 9],
-      [53, 34, 8],
-      [67, 33, 8],
-    ]
-    return (
-      <g>
-        {puffs.map(([x, y, r], i) => (
-          <circle key={i} cx={x} cy={y} r={r} fill={color} {...line} />
-        ))}
-        {puffs.slice(0, 7).map(([x, y], i) => (
-          <circle key={`d${i}`} cx={x + 2} cy={y + 2} r="3" fill={dark} opacity="0.5" />
-        ))}
-        {hl}
-      </g>
-    )
+/** Hair drawn behind the head and body (length, volume, bun, braid). */
+function HairBack({ c, g }: { c: AvatarConfig; g: string }) {
+  const e = edge(c.hairColor, 0.8)
+  switch (c.hairStyle) {
+    case 'long':
+      return <path d="M40.5 30 C34 46 33.5 74 37 98 Q48 104 60 103 Q72 104 83 98 C86.5 74 86 46 79.5 30 Z" fill={g} {...e} />
+    case 'braid':
+      return <path d="M40.5 30 C36 42 36 54 39 64 L81 64 C84 54 84 42 79.5 30 Z" fill={g} {...e} />
+    case 'curly':
+      return (
+        <g fill={g} {...e}>
+          {[
+            [39, 42, 8],
+            [81, 42, 8],
+            [38, 54, 7],
+            [82, 54, 7],
+            [41, 63, 6],
+            [79, 63, 6],
+          ].map(([x, y, r]) => (
+            <circle key={`${x}-${y}`} cx={x} cy={y} r={r} />
+          ))}
+        </g>
+      )
+    case 'bun':
+      return <path d="M41 30 C38 40 39 48 42 52 L78 52 C81 48 82 40 79 30 Z" fill={g} {...e} />
+    default:
+      return null
   }
-  if (style === 'spiky') {
-    return (
-      <g>
-        <path d="M28 56 L30 34 L39 39 L42 20 L52 31 L60 13 L68 31 L78 20 L81 39 L90 34 L92 56 C86 44 76 39 60 39 C46 39 34 44 28 56 Z" fill={color} {...line} />
-        <path d="M44 38 L48 27 M60 37 L60 22 M74 38 L72 27" stroke={dark} strokeWidth="2" strokeLinecap="round" opacity="0.6" />
-        {hl}
-      </g>
-    )
-  }
-  // short, long, bun and braid share a swept fringe
-  return (
-    <g>
-      <path d="M28 57 C25 31 41 17 61 17 C80 17 96 30 92 57 C88 46 82 40 72 38 C67 44 57 46 48 42 C40 44 33 49 28 57 Z" fill={color} {...line} />
-      <path d="M48 42 C55 40 62 36 66 30 M72 38 C76 36 80 34 82 30" fill="none" stroke={dark} strokeWidth="2" strokeLinecap="round" opacity="0.7" />
-      {(style === 'long' || style === 'braid') && (
-        <>
-          <path d="M29 50 C26 62 27 74 31 82 C34 72 34 60 35 50 Z" fill={color} {...line} />
-          <path d="M91 50 C94 62 93 74 89 82 C86 72 86 60 85 50 Z" fill={color} {...line} />
-        </>
-      )}
-      {style === 'bun' && (
+}
+
+/** Hair drawn over the head: the cap, fringe and highlights. */
+function HairFront({ c, g }: { c: AvatarConfig; g: string }) {
+  const e = edge(c.hairColor, 0.8)
+  const dark = shade(c.hairColor, -0.45)
+  const light = shade(c.hairColor, 0.45)
+  const strands = (d: string) => <path d={d} fill="none" stroke={dark} strokeWidth="0.8" strokeLinecap="round" opacity="0.55" />
+  const shine = (d: string) => <path d={d} fill="none" stroke={light} strokeWidth="1.6" strokeLinecap="round" opacity="0.55" />
+  switch (c.hairStyle) {
+    case 'spiky':
+      return (
         <g>
-          <circle cx="60" cy="15" r="11" fill={color} {...line} />
-          <path d="M53 13 Q60 8 67 13" fill="none" stroke={dark} strokeWidth="2" opacity="0.7" />
-          <rect x="52" y="22" width="16" height="5" rx="2.5" fill="#f43f5e" {...line} strokeWidth={1.6} />
+          <path
+            d="M39.6 35 L36.5 22 L43.5 23.5 L42 11 L50 16.5 L54 4 L60.5 13 L67.5 3.5 L70 14.5 L78.5 9.5 L77 21.5 L84 21 L80.4 35 C78.5 27 74 23.6 67.5 23.4 C62 26.6 53 26.6 47.6 23.6 C43.4 26 40.8 30 39.6 35 Z"
+            fill={g}
+            {...e}
+          />
+          {strands('M47 22 L45 14 M56 22 L56 9 M65 22 L68 9 M73 23 L77 15')}
+          {shine('M50 18 L52.5 10 M61 17 L62.5 9')}
         </g>
-      )}
-      {hl}
-    </g>
-  )
+      )
+    case 'curly':
+      return (
+        <g>
+          <path d="M39.4 36 C37.5 18 47 8 60 8 C73 8 82.5 18 80.6 36 C78 28 72 24 60 24 C48 24 42 28 39.4 36 Z" fill={g} {...e} />
+          {[
+            [43, 25, 5.2],
+            [48, 17, 5.6],
+            [55, 12, 5.6],
+            [63, 11.5, 5.6],
+            [71, 14.5, 5.6],
+            [77, 21.5, 5.2],
+            [79.5, 30, 4.4],
+            [40.5, 31, 4.4],
+            [52, 22.5, 4.6],
+            [60.5, 21.5, 4.6],
+            [68.5, 22.5, 4.6],
+          ].map(([x, y, r]) => (
+            <g key={`${x}-${y}`}>
+              <circle cx={x} cy={y} r={r} fill={g} {...e} />
+              <path d={`M${x - r * 0.45} ${y - r * 0.35} a${r * 0.55} ${r * 0.55} 0 0 1 ${r * 0.8} 0`} fill="none" stroke={light} strokeWidth="1" opacity="0.6" />
+            </g>
+          ))}
+        </g>
+      )
+    case 'short':
+      return (
+        <g>
+          <path
+            d="M39.5 35.5 C37 17 47.5 7.5 61 7.5 C74.5 7.5 84 16.5 80.5 35.5 C79 28.5 75.5 23.5 70 21.6 C65.5 25.6 55 26.4 47.6 22.6 C43.6 25.6 40.8 30 39.5 35.5 Z"
+            fill={g}
+            {...e}
+          />
+          {strands('M47.6 22.6 C52 18 58 15 63 12 M57 24.6 C62 21 66 17 69 13 M70 21.6 C73 18 75 16 77 17')}
+          {shine('M48 15 C53 11 58 10 63 10.4')}
+        </g>
+      )
+    default: {
+      // long, braid and bun: middle parting, swept to the sides
+      return (
+        <g>
+          <path d="M39.6 38 C36.6 16.5 47.5 7 60 7 C72.5 7 83.4 16.5 80.4 38 C79 29 74 22 60.6 19.6 C47 21.6 41.6 29 39.6 38 Z" fill={g} {...e} />
+          <path d="M60.6 8 L60.6 19.6" stroke={dark} strokeWidth="0.9" opacity="0.6" />
+          {strands('M58 10 C50 13 44 20 41.6 30 M63 10 C70 13 76 20 78.4 30')}
+          {shine('M52 11.5 C47.5 14 45 18 43.6 22 M68 11.5 C72.5 14 75 18 76.4 22')}
+          {c.hairStyle === 'long' && (
+            <g fill={g} {...e}>
+              <path d="M40.4 32 C37.4 48 37.6 66 41 84 C44.6 74 45.4 56 44.4 40 Z" />
+              <path d="M79.6 32 C82.6 48 82.4 66 79 84 C75.4 74 74.6 56 75.6 40 Z" />
+            </g>
+          )}
+          {c.hairStyle === 'bun' && (
+            <g>
+              <circle cx="60" cy="6.5" r="7.2" fill={g} {...e} />
+              <path d="M55.5 5 Q60 1.5 64.5 5" fill="none" stroke={light} strokeWidth="1.2" opacity="0.6" />
+              <path d="M54.6 11.6 Q60 13.6 65.4 11.6" fill="none" stroke="#f43f5e" strokeWidth="2.4" strokeLinecap="round" />
+            </g>
+          )}
+          {c.hairStyle === 'braid' && (
+            <g>
+              {[0, 1, 2, 3, 4].map((i) => (
+                <ellipse key={i} cx={76 + (i % 2 ? 1.6 : 0) + i * 0.8} cy={48 + i * 8.4} rx="4.6" ry="5" fill={g} {...e} />
+              ))}
+              <path d="M77.4 89.5 L83.4 89.5 L80.4 95 Z" fill="#f43f5e" />
+            </g>
+          )}
+        </g>
+      )
+    }
+  }
 }
 
-/** SVG avatar used for the player and story characters. Full variant is a walkable sprite. */
+/** SVG avatar used for the player's map explorer and as a fallback for story characters. */
 export function AvatarFigure({ config: c, variant = 'full', className, title, mood = 'happy', walking = false }: Props) {
   const uid = useId().replace(/:/g, '')
-  const viewBox = variant === 'portrait' ? '14 4 92 92' : '0 0 120 180'
-  const hairDark = shade(c.hairColor, -0.3)
-  const top = c.outfit === 'cape' ? shade(c.outfitColor, 0.25) : c.outfitColor
-  const outfitDark = shade(c.outfitColor, -0.28)
-  const packDark = shade(c.backpackColor, -0.3)
-  const skinShade = shade(c.skin, -0.16)
-  const pants = '#2b3a5c'
   const full = variant === 'full'
+  const viewBox = full ? '0 0 120 180' : '30 0 60 60'
+  const u = (n: string) => `url(#${n}-${uid})`
+  const cloth = c.outfitColor
+  const clothDark = shade(cloth, -0.32)
+  const pack = c.backpackColor
+  const packDark = shade(pack, -0.35)
+  const pants = c.outfit === 'kurta' ? '#e7e5e4' : '#2f3e64'
+  const longSleeves = c.outfit !== 'tee' && c.outfit !== 'cape'
+  const torso =
+    c.outfit === 'kurta'
+      ? 'M46 63 C52 61 68 61 74 63 C80 64.6 82.4 69 82.4 76 L84 126 C74 130 46 130 36 126 L37.6 76 C37.6 69 40 64.6 46 63 Z'
+      : 'M46 63 C52 61 68 61 74 63 C80 64.6 82.4 69 82.4 76 L79.6 111 C72.6 115 47.4 115 40.4 111 L37.6 76 C37.6 69 40 64.6 46 63 Z'
+  const arm = (side: 'l' | 'r') => {
+    // Drawn for the left arm and mirrored for the right.
+    const m = side === 'r' ? 'scale(-1 1) translate(-120 0) translate(-2 0)' : 'translate(-2 0)'
+    const sleeve = longSleeves
+      ? 'M42 63.4 C36 63.6 33 68 32.4 75 L30.4 100.6 Q30.4 104.4 34.6 104.4 Q38.6 104.4 38.8 100.6 L41.6 80 Z'
+      : 'M42 63.4 C36 63.6 33 68 32.4 75 L31.8 82 Q36.4 84.6 41 82 L41.6 76 Z'
+    return (
+      <g className={`avatar-arm-${side}`}>
+        <g transform={m}>
+          {!longSleeves && <path d="M33 78 L31 100.6 Q31 104.4 34.8 104.4 Q38.4 104.4 38.6 100.6 L40.6 80 Z" fill={u('skin')} {...edge(c.skin)} />}
+          <path d={sleeve} fill={u('cloth')} {...edge(cloth)} />
+          {longSleeves && <path d="M30.6 98.6 Q34.6 100.6 38.9 98.6" fill="none" stroke={clothDark} strokeWidth="1.6" opacity="0.7" />}
+          <ellipse cx="34.6" cy="108.4" rx="4.2" ry="4.9" fill={u('skin')} {...edge(c.skin)} />
+          <path d="M37.4 106 Q39.4 108.6 37.6 111" fill="none" stroke={shade(c.skin, -0.3)} strokeWidth="0.7" opacity="0.7" />
+        </g>
+      </g>
+    )
+  }
   return (
     <svg
       viewBox={viewBox}
@@ -151,203 +277,240 @@ export function AvatarFigure({ config: c, variant = 'full', className, title, mo
       role={title ? 'img' : undefined}
       aria-label={title}
       aria-hidden={title ? undefined : true}
-      overflow={variant === 'portrait' ? 'hidden' : 'visible'}
+      overflow={full ? 'visible' : 'hidden'}
     >
       <defs>
-        <clipPath id={`head-${uid}`}>
-          <circle cx="60" cy="56" r="32" />
+        <radialGradient id={`skin-${uid}`} cx="40%" cy="38%" r="75%">
+          <stop offset="0" stopColor={shade(c.skin, 0.22)} />
+          <stop offset="0.6" stopColor={c.skin} />
+          <stop offset="1" stopColor={shade(c.skin, -0.12)} />
+        </radialGradient>
+        <linearGradient id={`hair-${uid}`} x1="0" y1="0" x2="0.4" y2="1">
+          <stop offset="0" stopColor={shade(c.hairColor, 0.25)} />
+          <stop offset="0.5" stopColor={c.hairColor} />
+          <stop offset="1" stopColor={shade(c.hairColor, -0.3)} />
+        </linearGradient>
+        <linearGradient id={`cloth-${uid}`} x1="0" y1="0" x2="1" y2="0.3">
+          <stop offset="0" stopColor={shade(cloth, 0.22)} />
+          <stop offset="0.5" stopColor={cloth} />
+          <stop offset="1" stopColor={shade(cloth, -0.28)} />
+        </linearGradient>
+        <linearGradient id={`pack-${uid}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor={shade(pack, 0.2)} />
+          <stop offset="1" stopColor={shade(pack, -0.25)} />
+        </linearGradient>
+        <linearGradient id={`pants-${uid}`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor={shade(pants, 0.18)} />
+          <stop offset="1" stopColor={shade(pants, -0.22)} />
+        </linearGradient>
+        <radialGradient id={`iris-${uid}`} cx="45%" cy="35%" r="70%">
+          <stop offset="0" stopColor="#a0663a" />
+          <stop offset="0.6" stopColor="#5b3219" />
+          <stop offset="1" stopColor="#2a160b" />
+        </radialGradient>
+        <clipPath id={`face-${uid}`}>
+          <path d="M41.4 29 C41.4 15.5 50 11 60 11 C70 11 78.6 15.5 78.6 29 L78.6 38 C78.6 50.5 70 58.5 60 58.5 C50 58.5 41.4 50.5 41.4 38 Z" />
         </clipPath>
-        <clipPath id={`body-${uid}`}>
-          <path d={full ? 'M34 142 C33 117 40 98 60 96 C80 98 87 117 86 142 Q60 148 34 142 Z' : 'M24 170 C24 122 38 98 60 96 C82 98 96 122 96 170 Z'} />
+        <clipPath id={`torso-${uid}`}>
+          <path d={torso} />
         </clipPath>
+        {[51, 69].map((cx) => (
+          <clipPath key={cx} id={`eye-${uid}-${cx}`}>
+            <ellipse cx={cx} cy="37.5" rx="5.2" ry={mood === 'surprised' ? 4.9 : 4.2} />
+          </clipPath>
+        ))}
       </defs>
-      {full && <ellipse cx="60" cy="173" rx="30" ry="6" fill="#000" opacity="0.2" />}
 
-      {/* Behind the body: cape, backpack, long hair, hood */}
-      {c.outfit === 'cape' && <path className="avatar-cape" d="M34 98 L86 98 L100 164 Q60 174 20 164 Z" fill={shade(c.outfitColor, -0.1)} {...line} />}
+      {full && <ellipse cx="60" cy="172" rx="25" ry="4.5" fill="#000" opacity="0.18" />}
+
+      {/* Behind the body */}
+      {c.outfit === 'cape' && <path className="avatar-cape" d="M42 64 L78 64 L94 150 Q60 158 26 150 Z" fill={shade(cloth, -0.12)} {...edge(cloth)} />}
       {(c.backpack === 'classic' || c.backpack === 'explorer') && (
         <g>
-          <rect x="23" y="100" width="74" height="46" rx="14" fill={c.backpackColor} {...line} />
+          <rect x="31" y="66" width="58" height="44" rx="12" fill={u('pack')} {...edge(pack)} />
           {c.backpack === 'explorer' && (
             <>
-              <rect x="30" y="90" width="60" height="13" rx="6.5" fill={packDark} {...line} />
-              <rect x="15" y="111" width="11" height="24" rx="5" fill={packDark} {...line} />
-              <rect x="94" y="111" width="11" height="24" rx="5" fill={packDark} {...line} />
+              <rect x="36" y="57" width="48" height="11" rx="5.5" fill={packDark} {...edge(packDark)} />
+              <path d="M44 57 V68 M76 57 V68" stroke={shade(packDark, -0.3)} strokeWidth="1.4" />
+              <rect x="25" y="80" width="8" height="22" rx="4" fill={packDark} {...edge(packDark)} />
+              <rect x="87" y="80" width="8" height="22" rx="4" fill={packDark} {...edge(packDark)} />
             </>
           )}
         </g>
       )}
       {c.backpack === 'jetpack' && (
         <g>
-          <rect x="21" y="98" width="20" height="44" rx="9" fill="#cbd5e1" {...line} />
-          <rect x="79" y="98" width="20" height="44" rx="9" fill="#cbd5e1" {...line} />
-          <rect x="25" y="104" width="5" height="30" rx="2.5" fill="#fff" opacity="0.6" />
-          <rect x="83" y="104" width="5" height="30" rx="2.5" fill="#fff" opacity="0.6" />
+          {[30, 76].map((x) => (
+            <g key={x}>
+              <rect x={x} y="62" width="14" height="40" rx="7" fill="#cbd5e1" {...edge('#cbd5e1')} />
+              <rect x={x + 3} y="66" width="3" height="30" rx="1.5" fill="#fff" opacity="0.7" />
+            </g>
+          ))}
           <g className="avatar-flame">
-            <path d="M25 142 L31 162 L37 142 Z" fill="#f97316" />
-            <path d="M83 142 L89 162 L95 142 Z" fill="#f97316" />
-            <path d="M28 142 L31 152 L34 142 Z" fill="#fde047" />
-            <path d="M86 142 L89 152 L92 142 Z" fill="#fde047" />
+            <path d="M32 102 L37 120 L42 102 Z M78 102 L83 120 L88 102 Z" fill="#f97316" />
+            <path d="M34.5 102 L37 111 L39.5 102 Z M80.5 102 L83 111 L85.5 102 Z" fill="#fde047" />
           </g>
         </g>
       )}
-      {(c.hairStyle === 'long' || c.hairStyle === 'braid') && <path d="M27 54 C24 88 31 106 41 112 L79 112 C89 106 96 88 93 54 Z" fill={c.hairColor} {...line} />}
-      {c.hairStyle === 'braid' && (
-        <g>
-          {[0, 1, 2, 3].map((i) => (
-            <ellipse key={i} cx={86 + (i % 2 ? 2 : 0)} cy={98 + i * 10} rx="6.5" ry="6" fill={c.hairColor} {...line} />
-          ))}
-          <path d="M84 140 L92 140 L88 147 Z" fill="#f43f5e" {...line} strokeWidth={1.6} />
-        </g>
-      )}
-      {c.outfit === 'hoodie' && <path d="M36 98 C38 80 82 80 84 98 Z" fill={outfitDark} {...line} />}
+      <HairBack c={c} g={u('hair')} />
+      {c.outfit === 'hoodie' && <path d="M44 66 C42 54 78 54 76 66 Q60 60 44 66 Z" fill={clothDark} {...edge(clothDark)} />}
 
       {/* Legs and shoes */}
       {full && (
         <g>
-          <g className="avatar-leg-l">
-            <rect x="45" y="134" width="13" height="28" rx="5.5" fill={pants} {...line} />
-            <path d="M41 162 Q41 156 47 156 L56 156 Q60 156 60 161 L60 166 L41 166 Z" fill="#334155" {...line} />
-            <path d="M41 166 L60 166" stroke="#f8fafc" strokeWidth="2.4" />
-          </g>
-          <g className="avatar-leg-r">
-            <rect x="62" y="134" width="13" height="28" rx="5.5" fill={pants} {...line} />
-            <path d="M60 162 Q60 156 66 156 L74 156 Q79 156 79 161 L79 166 L60 166 Z" fill="#334155" {...line} />
-            <path d="M60 166 L79 166" stroke="#f8fafc" strokeWidth="2.4" />
-          </g>
+          {(['l', 'r'] as const).map((side) => {
+            const x = side === 'l' ? 46.5 : 61.5
+            return (
+              <g key={side} className={`avatar-leg-${side}`}>
+                <rect x={x} y="108" width="12" height="54" rx="5" fill={u('pants')} {...edge(pants)} />
+                <path
+                  d={`M${x - 3.5} 168 Q${x - 3.5} 159 ${x + 3} 158.5 L${x + 10} 158.5 Q${x + 14.5} 159 ${x + 14.5} 165 L${x + 14.5} 168 Z`}
+                  fill="#334155"
+                  {...edge('#334155')}
+                />
+                <path d={`M${x - 3.5} 168.4 L${x + 14.5} 168.4`} stroke="#f8fafc" strokeWidth="2.4" strokeLinecap="round" />
+                <path d={`M${x + 1} 161.5 L${x + 9} 161.5`} stroke="#94a3b8" strokeWidth="1" strokeLinecap="round" />
+              </g>
+            )
+          })}
         </g>
       )}
 
-      {/* Arms */}
-      <g className="avatar-arm-l">
-        <rect x="23" y="100" width="14" height="32" rx="7" fill={top} {...line} />
-        <circle cx="30" cy="134" r="6.5" fill={c.skin} {...line} />
-      </g>
-      <g className="avatar-arm-r">
-        <rect x="83" y="100" width="14" height="32" rx="7" fill={top} {...line} />
-        <circle cx="90" cy="134" r="6.5" fill={c.skin} {...line} />
-      </g>
-
-      {/* Torso with cel shading */}
-      <path d={full ? 'M34 142 C33 117 40 98 60 96 C80 98 87 117 86 142 Q60 148 34 142 Z' : 'M24 170 C24 122 38 98 60 96 C82 98 96 122 96 170 Z'} fill={top} {...line} />
-      <g clipPath={`url(#body-${uid})`}>
-        <path d="M66 94 C84 100 92 124 90 150 L100 150 L100 94 Z" fill="#000" opacity="0.13" />
-        {c.outfit === 'kurta' && (
+      {/* Torso, shaded like cloth */}
+      <path d={torso} fill={u('cloth')} {...edge(cloth)} />
+      <g clipPath={`url(#torso-${uid})`}>
+        <path d="M68 60 C80 66 86 90 84 130 L96 130 L96 60 Z" fill="#000" opacity="0.12" />
+        <path d="M50 90 Q54 100 52 112 M70 88 Q67 100 69 112" fill="none" stroke={clothDark} strokeWidth="0.8" opacity="0.45" />
+        {c.outfit === 'tee' && (
           <g>
-            <path d="M60 97 L60 132" stroke={outfitDark} strokeWidth="2.5" />
-            {[104, 113, 122].map((y) => (
-              <circle key={y} cx="60" cy={y} r="1.9" fill="#fef3c7" stroke={OL} strokeWidth="1" />
-            ))}
-            <path d="M30 136 L90 136" stroke={shade(c.outfitColor, 0.35)} strokeWidth="5" />
-          </g>
-        )}
-        {c.outfit === 'jacket' && (
-          <g>
-            <path d="M50 96 L60 124 L70 96 Z" fill="#f8fafc" {...line} strokeWidth={1.8} />
-            <path d="M50 96 L56 118 L43 106 Z M70 96 L64 118 L77 106 Z" fill={outfitDark} {...line} strokeWidth={1.8} />
-            <rect x="38" y="124" width="13" height="9" rx="2.5" fill={outfitDark} {...line} strokeWidth={1.6} />
-            <rect x="69" y="124" width="13" height="9" rx="2.5" fill={outfitDark} {...line} strokeWidth={1.6} />
+            <path d="M52 62.6 Q60 70 68 62.6" fill="none" stroke={clothDark} strokeWidth="2" strokeLinecap="round" />
+            <circle cx="60" cy="84" r="6.4" fill="#fff" opacity="0.9" />
+            <path d="M60 79.6 L61.4 82.8 L64.8 83.1 L62.3 85.4 L63 88.8 L60 87.1 L57 88.8 L57.7 85.4 L55.2 83.1 L58.6 82.8 Z" fill={clothDark} />
           </g>
         )}
         {c.outfit === 'hoodie' && (
           <g>
-            <path d="M45 127 Q60 121 75 127 L73 140 Q60 137 47 140 Z" fill={outfitDark} {...line} strokeWidth={1.8} />
-            <path d="M55 99 L54 113 M65 99 L66 113" stroke="#f8fafc" strokeWidth="2.2" strokeLinecap="round" />
-            <circle cx="54" cy="114" r="1.8" fill="#f8fafc" />
-            <circle cx="66" cy="114" r="1.8" fill="#f8fafc" />
+            <path d="M46 94 Q60 89 74 94 L72.5 108 Q60 105.5 47.5 108 Z" fill={clothDark} opacity="0.75" />
+            <path d="M55.5 64 L54.6 78 M64.5 64 L65.4 78" stroke="#f8fafc" strokeWidth="1.5" strokeLinecap="round" />
+            <circle cx="54.6" cy="79" r="1.3" fill="#f8fafc" />
+            <circle cx="65.4" cy="79" r="1.3" fill="#f8fafc" />
           </g>
         )}
-        {c.outfit === 'tee' && (
+        {c.outfit === 'kurta' && (
           <g>
-            <path d="M48 96 Q60 106 72 96" fill="none" stroke={outfitDark} strokeWidth="3" strokeLinecap="round" />
-            <circle cx="60" cy="118" r="7" fill="#fff" opacity="0.85" />
-            <path d="M60 113 L61.6 116.6 L65.4 117 L62.6 119.6 L63.4 123.4 L60 121.5 L56.6 123.4 L57.4 119.6 L54.6 117 L58.4 116.6 Z" fill={outfitDark} />
+            <rect x="54" y="60" width="12" height="4.6" rx="2" fill={clothDark} />
+            <path d="M60 64 L60 92" stroke={clothDark} strokeWidth="1.6" />
+            {[70, 77, 84].map((y) => (
+              <circle key={y} cx="60" cy={y} r="1.3" fill="#fde68a" />
+            ))}
+            <path d="M34 121 L86 121" stroke={shade(cloth, 0.4)} strokeWidth="3.2" />
+            <path d="M34 124.6 L86 124.6" stroke="#fde68a" strokeWidth="1" opacity="0.8" />
           </g>
         )}
-        {c.outfit === 'cape' && <path d="M40 96 Q60 108 80 96 L78 102 Q60 114 42 102 Z" fill="#facc15" {...line} strokeWidth={1.8} />}
+        {c.outfit === 'jacket' && (
+          <g>
+            <path d="M52 62 L60 112 L68 62 Z" fill="#f8fafc" />
+            <path d="M52 62 L57 88 L46 74 Z M68 62 L63 88 L74 74 Z" fill={clothDark} opacity="0.85" />
+            <path d="M56.6 66 L60 112 M63.4 66 L60 112" stroke={shade(cloth, -0.5)} strokeWidth="0.8" opacity="0.6" />
+            <rect x="40" y="95" width="11" height="8" rx="2" fill={clothDark} opacity="0.8" />
+            <rect x="69" y="95" width="11" height="8" rx="2" fill={clothDark} opacity="0.8" />
+          </g>
+        )}
+        {c.outfit === 'cape' && (
+          <g>
+            <path d="M52 62.6 Q60 70 68 62.6" fill="none" stroke={clothDark} strokeWidth="2" strokeLinecap="round" />
+            <path d="M44 63 Q60 74 76 63" fill="none" stroke="#facc15" strokeWidth="2.4" />
+            <circle cx="60" cy="69" r="2.6" fill="#facc15" {...edge('#facc15', 0.6)} />
+          </g>
+        )}
       </g>
       {(c.backpack === 'classic' || c.backpack === 'explorer') && (
-        <g>
-          <path d="M43 99 L40 138" stroke={packDark} strokeWidth="6" strokeLinecap="round" />
-          <path d="M77 99 L80 138" stroke={packDark} strokeWidth="6" strokeLinecap="round" />
+        <g stroke={packDark} strokeWidth="4.2" strokeLinecap="round">
+          <path d="M47 63.5 L44.5 104" />
+          <path d="M73 63.5 L75.5 104" />
         </g>
       )}
 
-      {/* Neck and scarf */}
-      <rect x="53" y="80" width="14" height="16" rx="5" fill={skinShade} {...line} />
+      {/* Arms, in front of the body so they read clearly (and can swing) */}
+      {arm('l')}
+      {arm('r')}
+
+      {/* Neck */}
+      <path d="M54.5 50 L65.5 50 L66 64 Q60 67 54 64 Z" fill={shade(c.skin, -0.12)} {...edge(c.skin, 0.7)} />
+      <path d="M54.5 56 Q60 60 65.5 56 L65.5 52 L54.5 52 Z" fill="#000" opacity="0.12" />
       {c.accessory === 'scarf' && (
         <g>
-          <path d="M41 88 Q60 100 79 88 L81 96 Q60 108 39 96 Z" fill={c.backpackColor} {...line} />
-          <rect x="66" y="94" width="10" height="20" rx="3" fill={packDark} {...line} strokeWidth={1.8} />
+          <path d="M47 61 Q60 70 73 61 L74 67 Q60 76 46 67 Z" fill={pack} {...edge(pack)} />
+          <rect x="63" y="66" width="7" height="18" rx="2.6" fill={packDark} {...edge(packDark)} />
         </g>
       )}
 
       {/* Head */}
-      <circle cx="27.5" cy="61" r="6" fill={c.skin} {...line} />
-      <circle cx="92.5" cy="61" r="6" fill={c.skin} {...line} />
-      <circle cx="27.5" cy="61" r="2.6" fill={skinShade} />
-      <circle cx="92.5" cy="61" r="2.6" fill={skinShade} />
-      <circle cx="60" cy="56" r="32" fill={c.skin} {...line} />
-      <g clipPath={`url(#head-${uid})`}>
-        <path d="M72 22 C98 34 100 80 64 90 L100 90 L100 22 Z" fill="#000" opacity="0.09" />
+      <ellipse cx="41.4" cy="38" rx="3.2" ry="5" fill={u('skin')} {...edge(c.skin, 0.7)} />
+      <ellipse cx="78.6" cy="38" rx="3.2" ry="5" fill={u('skin')} {...edge(c.skin, 0.7)} />
+      <path d="M41.4 29 C41.4 15.5 50 11 60 11 C70 11 78.6 15.5 78.6 29 L78.6 38 C78.6 50.5 70 58.5 60 58.5 C50 58.5 41.4 50.5 41.4 38 Z" fill={u('skin')} {...edge(c.skin, 0.8)} />
+      <g clipPath={`url(#face-${uid})`}>
+        <path d="M72 10 C84 22 84 46 70 56 L82 60 L82 10 Z" fill="#000" opacity="0.05" />
+        <ellipse cx="60" cy="24" rx="20" ry="5" fill="#000" opacity="0.06" />
       </g>
-      <Face mood={mood} brow={hairDark} />
-      <HairFront style={c.hairStyle} color={c.hairColor} dark={hairDark} />
+      <Face mood={mood} c={c} uid={uid} />
+      <HairFront c={c} g={u('hair')} />
 
       {/* Accessories */}
       {c.accessory === 'glasses' && (
-        <g fill="none" stroke={OL} strokeWidth="2.4">
-          <circle cx="48" cy="59" r="8.5" fill="#bae6fd" fillOpacity="0.18" />
-          <circle cx="72" cy="59" r="8.5" fill="#bae6fd" fillOpacity="0.18" />
-          <path d="M56.5 58 Q60 55.5 63.5 58 M39.5 57 L30 54 M80.5 57 L90 54" />
+        <g fill="none" stroke="#3b2a1e" strokeWidth="1.2">
+          <circle cx="51.5" cy="37.5" r="6" fill="#bae6fd" fillOpacity="0.15" />
+          <circle cx="68.5" cy="37.5" r="6" fill="#bae6fd" fillOpacity="0.15" />
+          <path d="M57.5 37 Q60 35.6 62.5 37 M45.5 36.5 L41.5 35.5 M74.5 36.5 L78.5 35.5" />
         </g>
       )}
-      {c.accessory === 'headband' && <path d="M29 44 Q60 28 91 44" fill="none" stroke="#f43f5e" strokeWidth="6" strokeLinecap="round" />}
+      {c.accessory === 'headband' && <path d="M40.6 27 Q60 12 79.4 27" fill="none" stroke="#f43f5e" strokeWidth="3.6" strokeLinecap="round" />}
       {c.accessory === 'cap' && (
         <g>
-          <path d="M29 44 C29 18 91 18 91 44 Z" fill={outfitDark} {...line} />
-          <path d="M60 42 L100 46 Q102 52 95 52 L60 49 Z" fill={shade(c.outfitColor, -0.45)} {...line} />
-          <circle cx="60" cy="22" r="3" fill={shade(c.outfitColor, 0.4)} {...line} strokeWidth={1.4} />
+          <path d="M39.6 28 C39.6 9 80.4 9 80.4 28 Z" fill={u('cloth')} {...edge(cloth)} />
+          <path d="M60 25.6 L88 28 Q90 32.4 85 32.6 L60 30.4 Z" fill={clothDark} {...edge(clothDark)} />
+          <circle cx="60" cy="11.4" r="2" fill={shade(cloth, 0.4)} />
         </g>
       )}
       {c.accessory === 'explorer-hat' && (
         <g>
-          <ellipse cx="60" cy="38" rx="45" ry="10" fill="#a16207" {...line} />
-          <path d="M37 38 C37 13 83 13 83 38 Z" fill="#ca8a04" {...line} />
-          <path d="M37 32 L83 32 L83 38 L37 38 Z" fill="#7c2d12" />
+          <ellipse cx="60" cy="24" rx="32" ry="7" fill="#a16207" {...edge('#a16207')} />
+          <path d="M44 24 C44 5 76 5 76 24 Z" fill="#ca8a04" {...edge('#ca8a04')} />
+          <path d="M44 19 L76 19 L76 24 L44 24 Z" fill="#7c2d12" />
         </g>
       )}
       {c.accessory === 'headphones' && (
         <g>
-          <path d="M26 58 C24 14 96 14 94 58" fill="none" stroke={OL} strokeWidth="8" />
-          <path d="M26 58 C24 14 96 14 94 58" fill="none" stroke="#475569" strokeWidth="4.5" />
-          <rect x="19" y="50" width="14" height="22" rx="6" fill="#f43f5e" {...line} />
-          <rect x="87" y="50" width="14" height="22" rx="6" fill="#f43f5e" {...line} />
+          <path d="M40 38 C38 4 82 4 80 38" fill="none" stroke="#334155" strokeWidth="3.6" />
+          <rect x="35.6" y="31" width="9" height="15" rx="4" fill="#f43f5e" {...edge('#f43f5e')} />
+          <rect x="75.4" y="31" width="9" height="15" rx="4" fill="#f43f5e" {...edge('#f43f5e')} />
         </g>
       )}
       {c.accessory === 'flower' && (
         <g>
-          <path d="M29 42 Q60 26 91 42" fill="none" stroke="#16a34a" strokeWidth="4" />
-          {[
-            [32, 40, '#f472b6'],
-            [45, 32, '#facc15'],
-            [60, 29, '#fb7185'],
-            [75, 32, '#a78bfa'],
-            [88, 40, '#facc15'],
-          ].map(([x, y, col]) => (
-            <g key={`${x}`}>
-              <circle cx={Number(x)} cy={Number(y)} r="5.5" fill={String(col)} {...line} strokeWidth={1.6} />
-              <circle cx={Number(x)} cy={Number(y)} r="2" fill="#fff7ed" />
+          <path d="M40.6 26 Q60 12 79.4 26" fill="none" stroke="#16a34a" strokeWidth="2.6" />
+          {(
+            [
+              [42.5, 24.5, '#f472b6'],
+              [50.5, 18, '#facc15'],
+              [60, 16, '#fb7185'],
+              [69.5, 18, '#a78bfa'],
+              [77.5, 24.5, '#facc15'],
+            ] as const
+          ).map(([x, y, col]) => (
+            <g key={x}>
+              <circle cx={x} cy={y} r="3.8" fill={col} {...edge(col, 0.6)} />
+              <circle cx={x} cy={y} r="1.4" fill="#fff7ed" />
             </g>
           ))}
         </g>
       )}
       {c.accessory === 'crown' && (
         <g>
-          <path d="M38 30 L42 10 L51 23 L60 5 L69 23 L78 10 L82 30 Z" fill="#facc15" {...line} />
-          <circle cx="60" cy="21" r="3.2" fill="#f43f5e" {...line} strokeWidth={1.2} />
-          <circle cx="46" cy="25" r="2.2" fill="#0ea5e9" />
-          <circle cx="74" cy="25" r="2.2" fill="#22c55e" />
+          <path d="M46 16 L48.5 2 L54.5 10.5 L60 -1 L65.5 10.5 L71.5 2 L74 16 Z" fill="#facc15" {...edge('#facc15')} />
+          <circle cx="60" cy="9.6" r="2" fill="#f43f5e" />
+          <circle cx="51.5" cy="12" r="1.4" fill="#0ea5e9" />
+          <circle cx="68.5" cy="12" r="1.4" fill="#22c55e" />
         </g>
       )}
     </svg>

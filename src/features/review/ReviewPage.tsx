@@ -4,7 +4,7 @@ import { useRequiredProfile } from '@/app/context'
 import { ChallengePanel } from '@/components/game/challenge/ChallengePanel'
 import { themeForSubject } from '@/components/game/Stage'
 import { Button, Card, EmptyState, LinkButton, PageHeader, Pill, Spinner } from '@/components/ui'
-import { conceptName } from '@/content'
+import { conceptName, REGIONS } from '@/content'
 import type { QuestionResponse } from '@/core/content/types'
 import type { GeneratedQuestion } from '@/core/engine/generator'
 import { regenerateForReview, reviewCandidates, submitAnswer, type ReviewItem } from '@/services/learning'
@@ -55,6 +55,8 @@ export function ReviewPage() {
               refresh()
             }}
             nextLabel="Back to review list"
+            speaker={REGIONS.find((r) => r.subject === active.question.subject)?.characterId}
+            player={{ avatar: profile.avatar, name: profile.nickname }}
           />
           <Button variant="ghost" className="self-start" onClick={() => setActive(null)}>
             Back to the list

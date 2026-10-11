@@ -165,6 +165,73 @@ export function AnswerStones({
 }
 
 // ---------------------------------------------------------------------------
+// Multiple choice as conversation: pick what you say back
+// ---------------------------------------------------------------------------
+
+export function ReplyChoices({
+  choices,
+  value,
+  onChange,
+  disabled,
+  labelledBy,
+  verdict,
+}: {
+  choices: Choice[]
+  value: string | null
+  onChange: (id: string) => void
+  disabled?: boolean
+  labelledBy?: string
+  /** After grading: colour the chosen reply. */
+  verdict?: 'correct' | 'incorrect'
+}) {
+  const two = choices.length === 2
+  return (
+    <div role="radiogroup" aria-labelledby={labelledBy} className={cn('ml-auto grid w-full max-w-[30rem] gap-2.5', two && 'grid-cols-2')}>
+      {choices.map((c, i) => {
+        const selected = value === c.id
+        return (
+          <motion.button
+            key={c.id}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            disabled={disabled}
+            data-choice-id={c.id}
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: disabled && !selected ? 0.55 : 1, x: 0 }}
+            transition={{ delay: 0.08 * i }}
+            onClick={() => {
+              play('tap')
+              onChange(c.id)
+            }}
+            className={cn(
+              'relative flex min-h-14 w-full items-center gap-3 rounded-[1.4rem] rounded-br-md border-[3px] px-4 py-2.5 text-left font-semibold transition-all',
+              'shadow-[0_4px_0_rgb(0_0_0/0.14)] active:translate-y-0.5 active:shadow-none disabled:active:translate-y-0',
+              selected
+                ? verdict === 'correct'
+                  ? 'border-leaf-deep bg-[#dcfce7]'
+                  : verdict === 'incorrect'
+                    ? 'border-coral-deep bg-[#ffe4e6]'
+                    : 'border-[#ea580c] bg-[#ffedd5] -translate-x-1 shadow-[0_6px_0_#ea580c]'
+                : 'border-white bg-white hover:-translate-x-0.5 hover:border-[#fed7aa]',
+              two && 'justify-center text-center',
+            )}
+          >
+            <span
+              aria-hidden
+              className={cn('grid size-7 shrink-0 place-items-center rounded-full text-sm font-bold', selected ? 'bg-[#ea580c] text-white' : 'bg-paper text-ink-muted')}
+            >
+              {i + 1}
+            </span>
+            <span className="text-[17px] leading-snug">{c.text}</span>
+          </motion.button>
+        )
+      })}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Numeric: carved display + on-screen keypad
 // ---------------------------------------------------------------------------
 
@@ -176,6 +243,7 @@ export function NumberPad({
   placeholder,
   onEnter,
   labelledBy,
+  lock,
 }: {
   value: string
   onChange: (v: string) => void
@@ -184,6 +252,8 @@ export function NumberPad({
   placeholder?: string
   onEnter?: () => void
   labelledBy?: string
+  /** Show the display as a code lock that opens (or jams) when the answer is checked. */
+  lock?: 'locked' | 'open' | 'jammed'
 }) {
   const [coarse, setCoarse] = useState(false)
   useEffect(() => {
@@ -200,7 +270,15 @@ export function NumberPad({
   return (
     <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start sm:justify-center sm:gap-6">
       <div className="flex flex-col items-center gap-2">
-        <div className="flex items-center gap-2 rounded-2xl border-4 border-[#78350f] bg-[#1c1917] px-4 py-2 shadow-inner">
+        {lock && <LockShackle state={lock} />}
+        <div
+          className={cn(
+            'flex items-center gap-2 rounded-2xl border-4 bg-[#1c1917] px-4 py-2 shadow-inner transition-colors',
+            lock ? 'relative z-10 -mt-3 border-[#a16207] shadow-[0_6px_0_#78350f]' : 'border-[#78350f]',
+            lock === 'open' && 'border-leaf-deep',
+            lock === 'jammed' && 'border-coral-deep',
+          )}
+        >
           <label className="sr-only" htmlFor={`${labelledBy}-num`}>
             Your answer
           </label>
@@ -250,6 +328,24 @@ export function NumberPad({
   )
 }
 
+function LockShackle({ state }: { state: 'locked' | 'open' | 'jammed' }) {
+  return (
+    <motion.svg viewBox="0 0 120 64" className="h-14 w-28" aria-hidden animate={state === 'jammed' ? { x: [0, -6, 6, -4, 4, 0] } : { x: 0 }} transition={{ duration: 0.45 }}>
+      <motion.path
+        d="M30 64 V34 A30 30 0 0 1 90 34 V64"
+        fill="none"
+        stroke={state === 'open' ? '#16a34a' : state === 'jammed' ? '#e11d48' : '#a16207'}
+        strokeWidth="12"
+        strokeLinecap="round"
+        initial={false}
+        animate={state === 'open' ? { y: -14, rotate: -18 } : { y: 0, rotate: 0 }}
+        style={{ originX: '90px', originY: '64px' }}
+        transition={{ type: 'spring', stiffness: 260, damping: 14 }}
+      />
+    </motion.svg>
+  )
+}
+
 // ---------------------------------------------------------------------------
 // Text answers
 // ---------------------------------------------------------------------------
@@ -293,8 +389,8 @@ export function PlankInput({
           }
         }}
         className={cn(
-          'min-h-14 rounded-2xl border-4 border-[#a16207] bg-[#fef3c7] px-4 font-display text-2xl font-bold text-[#422006] shadow-[inset_0_3px_0_rgb(0_0_0/0.08)] outline-none placeholder:text-[#d6b26b] focus:border-[#ea580c]',
-          wide ? 'w-full' : 'w-56 text-center',
+          'min-h-12 rounded-2xl border-4 border-[#a16207] bg-[#fef3c7] px-3 font-display text-xl sm:min-h-14 sm:px-4 sm:text-2xl font-bold text-[#422006] shadow-[inset_0_3px_0_rgb(0_0_0/0.08)] outline-none placeholder:text-[#d6b26b] focus:border-[#ea580c]',
+          wide ? 'w-full' : 'w-36 text-center sm:w-56',
         )}
       />
     </>

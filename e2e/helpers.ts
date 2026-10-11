@@ -80,7 +80,7 @@ export async function answerCurrent(page: Page, correct = true) {
       break
     }
   }
-  await card.getByRole('button', { name: /check answer|submit answer|cast answer/i }).click()
+  await card.locator('button[data-submit]').click()
   return id
 }
 
@@ -93,6 +93,14 @@ export async function answerAndContinue(page: Page, correct = true) {
     .getByRole('button', { name: /next|finish|continue|see result|back to review/i })
     .last()
     .click()
+}
+
+/** Wait until the next challenge (or the mission's closing story) is on screen. Returns true for the story. */
+export async function nextChallengeOrOutro(page: Page): Promise<boolean> {
+  const card = page.locator('[data-instance-id]:not([data-graded])')
+  const outro = page.getByRole('button', { name: /skip story/i })
+  await expect(card.or(outro).first()).toBeVisible()
+  return outro.isVisible()
 }
 
 export async function skipStory(page: Page) {

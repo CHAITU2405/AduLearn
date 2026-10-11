@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router'
 import { motion } from 'framer-motion'
 import { Info, Play, Sparkles, UserRoundCog, Users } from 'lucide-react'
 import { useProfile } from '@/app/context'
-import { AvatarFigure } from '@/components/avatar/AvatarFigure'
+import { PortraitFill } from '@/components/story/CharacterSprite'
 import { Logo } from '@/components/brand/Logo'
 import { PipSays } from '@/components/game/Pip'
 import { useProfiles } from '@/data/hooks'
@@ -17,7 +17,7 @@ export function WelcomePage() {
 
   return (
     <div className="relative min-h-dvh overflow-hidden">
-      <img src={ART.titleArt} alt="" aria-hidden className="absolute inset-0 size-full object-cover" draggable={false} />
+      <img src={ART.titleArt} alt="" aria-hidden fetchPriority="high" className="absolute inset-0 size-full object-cover" draggable={false} />
       <div className="absolute inset-0 bg-gradient-to-r from-[#0b1f3a]/70 via-[#0b1f3a]/25 to-transparent" aria-hidden />
       <main id="main" className="relative z-10 mx-auto flex min-h-dvh max-w-6xl flex-col justify-center gap-6 px-4 py-10 sm:px-8">
         <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="w-fit rounded-3xl border-4 border-white bg-white/95 px-5 py-3 shadow-lift">
@@ -59,7 +59,7 @@ export function WelcomePage() {
                     className="group flex w-full items-center gap-3 rounded-3xl border-4 border-white bg-white/95 p-2 pr-4 text-left shadow-lift transition-transform hover:-translate-y-1"
                   >
                     <span className="size-16 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-b from-brand-soft to-white">
-                      <AvatarFigure config={p.avatar} variant="portrait" className="size-full" />
+                      <PortraitFill speaker="player" avatar={p.avatar} />
                     </span>
                     <span className="min-w-0">
                       <span className="block truncate font-display text-xl font-bold">{p.nickname}</span>

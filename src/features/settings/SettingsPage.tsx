@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { Download, FlaskConical, LogOut, Save, Sparkles, Trash2, Upload, UserRoundPen } from 'lucide-react'
 import { usePrefs, useProfile } from '@/app/context'
 import { AvatarEditor } from '@/components/avatar/AvatarEditor'
+import { HeroPicker } from '@/components/avatar/HeroPicker'
 import { Button, Card, ConfirmDialog, Notice, PageHeader } from '@/components/ui'
 import { nicknameSchema, type AvatarConfig } from '@/core/avatar'
 import { buildExport, downloadJson, importBundle, parseImport } from '@/data/exportImport'
@@ -67,7 +68,12 @@ function ExplorerSection() {
               className="mt-1 block min-h-12 w-full max-w-sm rounded-2xl border-2 border-line px-4 font-bold outline-none focus:border-brand"
             />
           </div>
-          <AvatarEditor value={avatar} onChange={setAvatar} name={nickname} owned={wallet?.owned ?? []} />
+          <div>
+            <p className="mb-2 font-bold">Your hero</p>
+            <HeroPicker value={avatar} onChange={setAvatar} />
+          </div>
+          <p className="font-bold">Your explorer on the map</p>
+          <AvatarEditor value={avatar} onChange={(v) => setAvatar({ ...v, hero: avatar.hero })} name={nickname} owned={wallet?.owned ?? []} />
           <div className="flex gap-2">
             <Button onClick={() => void save()}>
               <Save className="size-4" aria-hidden /> Save changes

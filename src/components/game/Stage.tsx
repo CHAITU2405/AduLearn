@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { AvatarFigure, CreatureFigure, type Mood } from '@/components/avatar/AvatarFigure'
+import type { Mood } from '@/components/avatar/AvatarFigure'
+import { CharacterSprite, paintedArt } from '@/components/story/CharacterSprite'
 import { cn } from '@/components/ui'
-import { getCharacter } from '@/content/characters'
 import type { AvatarConfig } from '@/core/avatar'
 import type { ChallengeTheme } from './challenge/ChallengePanel'
 import { ART } from '@/game/art'
@@ -98,34 +98,16 @@ export function ProgressTrack({ theme, filled, total, caption }: { theme: Challe
 
 /** The mission giver and the explorer standing either side of the challenge (wide screens). */
 export function StageCharacters({ npcId, avatar, npcMood, playerMood }: { npcId: string; avatar: AvatarConfig; npcMood: Mood; playerMood: Mood }) {
-  const ch = getCharacter(npcId)
+  // Painted art is waist-up, so it is drawn larger; the two characters face each other across the challenge.
+  const size = (painted: boolean) => (painted ? 'h-[380px] w-[300px]' : 'h-[300px] w-[210px]')
   return (
     <>
-      <motion.div
-        key={`npc-${npcMood}`}
-        initial={{ y: npcMood === 'excited' ? 0 : 0 }}
-        animate={npcMood === 'excited' ? { y: [0, -24, 0] } : { y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="pointer-events-none fixed bottom-0 left-[max(0px,calc(50%-46rem))] z-0 hidden h-[300px] w-[210px] xl:block"
-        aria-hidden
-      >
-        {ch.creature ? (
-          <CreatureFigure art={ch.creature} className="size-full sprite-outline-lg" />
-        ) : ch.look ? (
-          <AvatarFigure config={ch.look} mood={npcMood} className="size-full sprite-shadow" />
-        ) : null}
-      </motion.div>
-      <motion.div
-        key={`me-${playerMood}`}
-        animate={playerMood === 'excited' ? { y: [0, -24, 0] } : playerMood === 'sad' ? { x: [0, -8, 8, 0] } : {}}
-        transition={{ duration: 0.5 }}
-        className={cn('pointer-events-none fixed right-[max(0px,calc(50%-46rem))] bottom-0 z-0 hidden h-[300px] w-[210px] xl:block')}
-        aria-hidden
-      >
-        <div className="size-full" style={{ transform: 'scaleX(-1)' }}>
-          <AvatarFigure config={avatar} mood={playerMood} className="size-full sprite-shadow" />
-        </div>
-      </motion.div>
+      <div className={cn('pointer-events-none fixed bottom-0 left-[max(0px,calc(50%-48rem))] z-0 hidden xl:block', size(!!paintedArt(npcId)))} aria-hidden>
+        <CharacterSprite speaker={npcId} mood={npcMood} face="right" className="size-full" />
+      </div>
+      <div className={cn('pointer-events-none fixed right-[max(0px,calc(50%-48rem))] bottom-0 z-0 hidden xl:block', size(!!paintedArt('player', avatar)))} aria-hidden>
+        <CharacterSprite speaker="player" avatar={avatar} mood={playerMood} face="left" className="size-full" />
+      </div>
     </>
   )
 }

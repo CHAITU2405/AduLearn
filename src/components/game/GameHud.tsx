@@ -4,7 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { animate, motion } from 'framer-motion'
 import { ArrowLeft, BookOpen, Backpack, Coins, Map as MapIcon, Settings, Star, Volume2, VolumeX } from 'lucide-react'
 import { usePrefs } from '@/app/context'
-import { AvatarFigure } from '@/components/avatar/AvatarFigure'
+import { PortraitFill } from '@/components/story/CharacterSprite'
 import { cn } from '@/components/ui'
 import type { ProfileRecord } from '@/data/db'
 import { bossRepo, progressRepo, walletRepo } from '@/data/repositories'
@@ -52,10 +52,16 @@ export function GameHud({
   const rank = explorerRank(stats?.totalStars ?? 0)
   return (
     <div className="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-2 p-3 sm:p-4">
+      {/* Soft scrim so the HUD stays readable over busy painted maps */}
+      <div className="absolute inset-x-0 top-0 -z-10 h-24 bg-gradient-to-b from-[#0b1f3a]/30 to-transparent" aria-hidden />
       <div className="pointer-events-auto flex min-w-0 items-center gap-2">
         {back ? (
-          <Link to={back.to} className={cn(iconBtn, 'w-auto gap-1 px-3 font-display font-bold')} aria-label={back.label}>
-            <ArrowLeft className="size-5" aria-hidden /> <span className="hidden sm:inline">{back.label}</span>
+          <Link
+            to={back.to}
+            className="inline-flex h-11 max-w-[min(16rem,40vw)] items-center gap-1.5 rounded-2xl border-[3px] border-white bg-white/90 px-3 font-display font-bold text-ink shadow-soft transition-transform hover:-translate-y-0.5 hover:bg-white"
+            aria-label={back.label}
+          >
+            <ArrowLeft className="size-5 shrink-0" aria-hidden /> <span className="hidden truncate whitespace-nowrap sm:inline">{back.label}</span>
           </Link>
         ) : (
           <Link
@@ -64,7 +70,7 @@ export function GameHud({
             aria-label={`${profile.nickname}, ${rank.title}. Open backpack`}
           >
             <span className="size-10 overflow-hidden rounded-xl bg-brand-soft">
-              <AvatarFigure config={profile.avatar} variant="portrait" className="size-full" />
+              <PortraitFill speaker="player" avatar={profile.avatar} />
             </span>
             <span className="hidden min-w-0 leading-tight sm:block">
               <span className="block max-w-32 truncate font-display font-bold">{profile.nickname}</span>

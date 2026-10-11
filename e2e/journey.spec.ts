@@ -111,7 +111,11 @@ test('main student journey: avatar → world map → diagnostic → missions →
   await expect(page.getByRole('heading', { name: /E2E Explorer/ })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Recent answers' })).toBeVisible()
   await expect(page.getByRole('cell', { name: 'boss', exact: true }).first()).toBeVisible()
+  // The list shows only the newest answers, so filter by activity to reach the starting check's records.
+  await page.getByLabel('Activity', { exact: true }).selectOption('diagnostic')
+  await expect(page.getByRole('cell', { name: 'diagnostic', exact: true })).toHaveCount(5)
   await expect(page.getByRole('cell', { name: 'diagnostic', exact: true }).first()).toBeVisible()
+  await expect(page.getByRole('cell', { name: 'boss', exact: true })).toHaveCount(0)
   await expect(page.getByText(/Observed 4 more correct answers/)).toBeVisible()
 
   expect(errors).toEqual([])

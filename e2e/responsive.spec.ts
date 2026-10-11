@@ -20,6 +20,6 @@ test('layouts do not overflow on a phone', async ({ page }) => {
   await expect(page.locator('[data-instance-id]')).toBeVisible()
   await expectNoHorizontalOverflow(page, 'mission')
   // Touch targets for answering are comfortably sized.
-  const box = await page.getByRole('button', { name: /check answer/i }).boundingBox()
+  const box = await page.locator('button[data-submit]').boundingBox()
   expect(box!.height).toBeGreaterThanOrEqual(44)
 })

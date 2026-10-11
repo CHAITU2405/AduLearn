@@ -3,6 +3,7 @@ import { animate, motion, useMotionValue, useSpring, type AnimationPlaybackContr
 import { Check, Lock, Star, Swords, X } from 'lucide-react'
 import { usePrefs } from '@/app/context'
 import { AvatarFigure, CreatureFigure } from '@/components/avatar/AvatarFigure'
+import { CharacterHead, paintedArt } from '@/components/story/CharacterSprite'
 import { cn } from '@/components/ui'
 import { getCharacter } from '@/content/characters'
 import type { AvatarConfig } from '@/core/avatar'
@@ -365,15 +366,21 @@ function NodeMarker({ node: n, counter, current, onClick }: { node: SceneNode; c
           className={n.state === 'available' ? 'water-flow' : undefined}
         />
       </svg>
-      {ch && (
-        <div className="pointer-events-none absolute -top-[110px] left-[38px] h-[110px] w-[74px]">
-          {ch.creature ? (
-            <CreatureFigure art={ch.creature} className="size-full sprite-outline" />
-          ) : ch.look ? (
-            <AvatarFigure config={ch.look} className="size-full sprite-shadow" />
-          ) : null}
-        </div>
-      )}
+      {ch &&
+        (paintedArt(ch.id) ? (
+          <div className="pointer-events-none absolute -top-[84px] left-[40px] size-[72px]">
+            <CharacterHead speaker={ch.id} className="size-full border-4 shadow-lift" />
+            <span className="absolute -bottom-2 left-1/2 size-4 -translate-x-1/2 rotate-45 border-r-4 border-b-4 border-white bg-[#fde68a]" aria-hidden />
+          </div>
+        ) : (
+          <div className="pointer-events-none absolute -top-[110px] left-[38px] h-[110px] w-[74px]">
+            {ch.creature ? (
+              <CreatureFigure art={ch.creature} className="size-full sprite-outline" />
+            ) : ch.look ? (
+              <AvatarFigure config={ch.look} className="size-full sprite-shadow" />
+            ) : null}
+          </div>
+        ))}
       {/* Status marker */}
       <div className="pointer-events-none absolute -translate-x-1/2" style={{ top: -markerY, transform: `translateX(-50%) scale(${counter})`, transformOrigin: 'bottom center' }}>
         {n.state === 'available' && (n.kind === 'mission' || n.kind === 'boss' || n.kind === 'check' || n.kind === 'gate') && (

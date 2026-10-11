@@ -158,6 +158,7 @@ function AssessmentFlow({ chapterId, kind }: { chapterId: string; kind: Assessme
               hintAllowance="none"
               feedback="none"
               submitLabel="Submit answer"
+              speaker="kavi"
               onSubmit={onSubmit}
               onNext={() => void onNext()}
             />

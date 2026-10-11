@@ -6,14 +6,26 @@ import { getTemplate } from '@/content'
 import { generateQuestion } from '@/core/engine/generator'
 import type { SubmitResult } from '@/services/learning'
 import { initialMastery } from '@/core/learning/mastery'
+import { DEFAULT_AVATAR } from '@/core/avatar'
+import { TEMPLATES } from '@/content'
 import { ChallengePanel } from './ChallengePanel'
 
-function setup(onSubmit: () => Promise<SubmitResult>) {
-  const q = generateQuestion(getTemplate('math.eq.add-one-step')!, { seed: 11 })!.question
+function setup(onSubmit: () => Promise<SubmitResult>, templateId = 'math.eq.add-one-step') {
+  const q = generateQuestion(getTemplate(templateId)!, { seed: 11 })!.question
   const onNext = vi.fn()
   render(
     <PrefsProvider>
-      <ChallengePanel question={q} conceptName="One-step equations" theme="numbers" hintAllowance="unlimited" feedback="full" onSubmit={onSubmit} onNext={onNext} />
+      <ChallengePanel
+        question={q}
+        conceptName="One-step equations"
+        theme="numbers"
+        hintAllowance="unlimited"
+        feedback="full"
+        onSubmit={onSubmit}
+        onNext={onNext}
+        speaker="ira"
+        player={{ avatar: DEFAULT_AVATAR, name: 'Sky' }}
+      />
     </PrefsProvider>,
   )
   return { q, onNext }
@@ -40,7 +52,7 @@ describe('ChallengePanel', () => {
     const onSubmit = vi.fn(() => new Promise<SubmitResult>((r) => (resolve = r)))
     setup(onSubmit)
     await userEvent.type(screen.getByRole('textbox'), '5')
-    const button = screen.getByRole('button', { name: /check answer/i })
+    const button = screen.getByRole('button', { name: /try the code/i })
     fireEvent.click(button)
     fireEvent.click(button)
     fireEvent.submit(button.closest('form')!)
@@ -52,7 +64,7 @@ describe('ChallengePanel', () => {
   it('does not allow submitting an empty answer', async () => {
     const onSubmit = vi.fn(async () => graded(true))
     setup(onSubmit)
-    expect(screen.getByRole('button', { name: /check answer/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /try the code/i })).toBeDisabled()
   })
 
   it('shows meaningful feedback, the correct answer and the explanation for a wrong answer', async () => {
@@ -71,5 +83,32 @@ describe('ChallengePanel', () => {
     expect(screen.queryByText(q.hints[1])).not.toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /ask pip \(1\)/i }))
     await waitFor(() => expect(screen.getByText(q.hints[1])).toBeInTheDocument())
+  })
+
+  it('is asked by the mission character as a conversation, and the explorer replies in it', async () => {
+    const { q } = setup(async () => graded(true))
+    expect(screen.getAllByText('Engineer Ira').length).toBeGreaterThan(0)
+    expect(screen.getByText(q.view.context!)).toBeInTheDocument()
+    await userEvent.type(screen.getByRole('textbox'), '5{Enter}')
+    await screen.findByText(/Why it works/i)
+    // The explorer's reply appears on their side of the conversation.
+    expect(screen.getByLabelText('Sky')).toBeInTheDocument()
+  })
+
+  it('unfolds multi-step challenges one step at a time', async () => {
+    const t = TEMPLATES.find((x) => x.type === 'multi')!
+    const q = generateQuestion(t, { seed: 3 })!.question
+    if (q.view.body.kind !== 'multi') throw new Error('expected a multi-step question')
+    render(
+      <PrefsProvider>
+        <ChallengePanel question={q} conceptName="c" theme="numbers" hintAllowance="none" feedback="full" onSubmit={async () => graded(true)} onNext={vi.fn()} />
+      </PrefsProvider>,
+    )
+    const steps = () => document.querySelectorAll('[data-part-index]').length
+    expect(steps()).toBe(1)
+    const first = q.view.body.parts[0]
+    if (first.kind === 'mcq') await userEvent.click(document.querySelector<HTMLElement>('[data-part-index="0"] [data-choice-id]')!)
+    else await userEvent.type(document.querySelector<HTMLInputElement>('[data-part-index="0"] input')!, '1')
+    expect(steps()).toBe(Math.min(2, q.view.body.parts.length))
   })
 })
